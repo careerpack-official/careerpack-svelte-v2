@@ -127,7 +127,8 @@ export function PhotoPicker({
           type="button"
           size="sm"
           variant={urlMode ? "secondary" : "outline"}
-          className="gap-1.5"
+          className="min-w-[44px] gap-1.5 sm:min-w-0"
+          aria-label="URL foto"
           onClick={() => setUrlMode((v) => !v)}
           disabled={disabled}
         >
@@ -138,7 +139,8 @@ export function PhotoPicker({
           type="button"
           size="sm"
           variant="outline"
-          className="gap-1.5"
+          className="min-w-[44px] gap-1.5 sm:min-w-0"
+          aria-label="Unggah foto"
           onClick={() => setUploadOpen(true)}
           disabled={disabled}
         >
@@ -149,7 +151,8 @@ export function PhotoPicker({
           type="button"
           size="sm"
           variant="outline"
-          className="gap-1.5"
+          className="min-w-[44px] gap-1.5 sm:min-w-0"
+          aria-label="Pilih foto dari pustaka"
           onClick={() => setLibraryOpen(true)}
           disabled={disabled}
         >
