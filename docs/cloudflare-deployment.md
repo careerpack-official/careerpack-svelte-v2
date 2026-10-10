@@ -8,8 +8,8 @@ Cloudflare R2 bucket contains only the disposable Next.js incremental cache.
 
 - Worker: `careerpack-frontend`, account `8c0b86359883aaeeb6fd3ff73e54ec96`.
 - Frontend origin: `https://careerpack.org`.
-- Convex API: `https://savory-oyster-802.convex.cloud`.
-- Convex HTTP actions: `https://savory-oyster-802.convex.site`.
+- Convex API: `https://accomplished-vole-302.ap-southeast-2.convex.cloud`.
+- Convex HTTP actions: `https://accomplished-vole-302.ap-southeast-2.convex.site`.
 - Cache bucket: `careerpack-next-cache`; SQLite Durable Object queue handles ISR.
 - Next.js image optimization uses the Cloudflare Images binding.
 
@@ -28,6 +28,10 @@ Changing frontend public URLs requires a rebuild; runtime variables alone
 cannot change values already compiled into the browser bundle.
 
 ## Release
+
+The 2026-10-10 account and data migration is tracked in
+[Careerpack migration](./careerpack-migration-2026-10-10.md). Its final data sync
+must finish before deploying the replacement Worker version.
 
 1. Verify the production Convex deployment contains the latest security fixes
    from `docs/security-rollout.md`, and verify its data before switching traffic.
@@ -54,8 +58,8 @@ cannot change values already compiled into the browser bundle.
    backend readiness. Keep the existing DNS values for rollback. Update
    `frontend/wrangler.jsonc` with the verified custom-domain routes after cutover.
 
-The manual `cloudflare-deploy.yml` workflow runs from `main` and expects the
-account ID and scoped API token in the GitHub `production` environment secrets.
+The manual `cloudflare-deploy.yml` workflow runs from `main`, pins the account ID
+in its configuration, and expects `CLOUDFLARE_API_TOKEN` in GitHub Actions secrets.
 It checks the backend before building to prevent publishing fallback catalog
 pages produced while the backend is unavailable. Push and PR events do not
 trigger paid builds.

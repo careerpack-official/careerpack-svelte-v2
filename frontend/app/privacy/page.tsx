@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "18 September 2026";
+const LAST_UPDATED = "10 Oktober 2026";
 
 export default function PrivacyPage() {
   return (
@@ -29,9 +29,9 @@ export default function PrivacyPage() {
         <h2>Domain Resmi CareerPack</h2>
         <p>
           Antarmuka pengguna dan layar OAuth utama berada di <code>careerpack.org</code>.
-          Backend aplikasi menggunakan <code>api.careerpack.org</code>, sedangkan HTTP
+          Backend aplikasi menggunakan <code>accomplished-vole-302.ap-southeast-2.convex.cloud</code>, sedangkan HTTP
           actions, metadata OAuth/MCP, dan registrasi klien menggunakan{" "}
-          <code>site.careerpack.org</code>. Ketiganya adalah custom domain CareerPack.
+          <code>accomplished-vole-302.ap-southeast-2.convex.site</code>. Backend ini dikelola CareerPack melalui layanan Convex di wilayah Sydney.
           Pada alur OAuth ke aplikasi pihak ketiga, browser dapat diarahkan ke domain
           aplikasi tersebut setelah Anda menyetujui akses; domain tujuan ditampilkan
           pada layar persetujuan sebelum Anda melanjutkan.
@@ -98,7 +98,9 @@ export default function PrivacyPage() {
           memiliki analitik internal yang dapat mencatat path halaman, host perujuk, UTM,
           ukuran layar, dan negara. Negara dapat diturunkan dari alamat IP saat request
           diproses; alamat IP mentah tidak disimpan sebagai data analitik. Analitik tidak
-          dijalankan pada dashboard dan admin.
+          dijalankan pada dashboard dan admin. Kunjungan halaman publik juga dikirim
+          ke PostHog sebagai event anonim tanpa cookie tambahan, profil pengguna,
+          rekaman sesi, isi CV, email, atau alamat IP pengunjung.
         </p>
 
         <h2>Yang Tidak Kami Lakukan</h2>

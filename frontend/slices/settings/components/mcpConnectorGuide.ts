@@ -95,7 +95,7 @@ export function buildGuides(v: ConnectorValues): HostGuide[] {
       host: "ChatGPT",
       path: "Buka plugin CareerPack terdaftar lewat tombol Connect ChatGPT. Form manual di bawah hanya fallback Developer Mode.",
       lede:
-        "Cara utama sekarang adalah plugin CareerPack yang sudah terdaftar di ChatGPT. Gunakan setup Server URL manual hanya untuk debugging atau Developer Mode; endpoint tetap memakai custom domain CareerPack.",
+        "Cara utama sekarang adalah plugin CareerPack yang sudah terdaftar di ChatGPT. Gunakan setup Server URL manual hanya untuk debugging atau Developer Mode; endpoint mengikuti alamat backend CareerPack yang ditampilkan di Pengaturan.",
       groups: [
         {
           title: "1 · Kolom yang benar-benar Anda isi",
@@ -156,7 +156,7 @@ export function buildGuides(v: ConnectorValues): HostGuide[] {
               field: "Authorization server base",
               verdict: "otomatis",
               value: v.asBase,
-              note: "Ini custom domain site.careerpack.org. Auth URL dan Token URL berada di careerpack.org; keduanya domain resmi CareerPack.",
+              note: "Ini alamat layanan backend CareerPack. Auth URL dan Token URL berada di careerpack.org.",
             },
             { field: "Resource", verdict: "otomatis", value: v.resource, note: "Endpoint MCP-nya sendiri, bukan origin-nya." },
           ],

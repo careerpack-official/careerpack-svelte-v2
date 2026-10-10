@@ -1,5 +1,8 @@
 # Development
 
+**Target terbaru (2026-10-10):** [migrasi Careerpack](./careerpack-migration-2026-10-10.md)
+menggantikan catatan target lama di bawah. `backend:deploy` adalah alias `backend:deploy-prod`.
+
 ## 1. Prereq
 
 - Node.js ≥ 20 (test di 22)

@@ -16,8 +16,8 @@ jobs:
     permissions:
       contents: read
     env:
-      NEXT_PUBLIC_CONVEX_URL: https://savory-oyster-802.convex.cloud
-      NEXT_PUBLIC_CONVEX_SITE_URL: https://savory-oyster-802.convex.site
+      NEXT_PUBLIC_CONVEX_URL: https://accomplished-vole-302.ap-southeast-2.convex.cloud
+      NEXT_PUBLIC_CONVEX_SITE_URL: https://accomplished-vole-302.ap-southeast-2.convex.site
       NEXT_PUBLIC_SITE_URL: https://careerpack.org
       APP_URL: https://careerpack.org
       NEXT_PUBLIC_BUILD_ID: ${{ github.sha }}
@@ -44,7 +44,7 @@ jobs:
       - name: Deploy Worker and populate cache
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: 8c0b86359883aaeeb6fd3ff73e54ec96
         run: |
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"

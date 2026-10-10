@@ -1,5 +1,8 @@
 # Backend (Convex)
 
+**Target terbaru (2026-10-10):** [migrasi Careerpack](./careerpack-migration-2026-10-10.md)
+menggantikan catatan target lama di bawah. Kedua perintah deploy memakai `main-v2`.
+
 Semua backend di `convex/`. **Produksi = Convex Cloud `proficient-dove-151`** (di-hardcode
 sebagai `NEXT_PUBLIC_CONVEX_URL` di `Dockerfile`); deploy ke sana lewat
 `pnpm backend:deploy-prod`. Stack self-hosted di `backend/convex-self-hosted/` masih

@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "careerpack-frontend",
+  "account_id": "8c0b86359883aaeeb6fd3ff73e54ec96",
   "main": ".open-next/worker.js",
   "minify": true,
   "compatibility_date": "2026-10-09",
@@ -35,7 +36,7 @@
   "vars": {
     "APP_URL": "https://careerpack.org",
     "NEXT_PUBLIC_SITE_URL": "https://careerpack.org",
-    "NEXT_PUBLIC_CONVEX_URL": "https://savory-oyster-802.convex.cloud",
-    "NEXT_PUBLIC_CONVEX_SITE_URL": "https://savory-oyster-802.convex.site"
+    "NEXT_PUBLIC_CONVEX_URL": "https://accomplished-vole-302.ap-southeast-2.convex.cloud",
+    "NEXT_PUBLIC_CONVEX_SITE_URL": "https://accomplished-vole-302.ap-southeast-2.convex.site"
   }
 }

@@ -2,7 +2,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
 import { clientIp, publicOrigin, edgeCountry } from "@/shared/lib/requestMeta";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 export const dynamic = "force-dynamic"; // never statically cache a beacon POST
 
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   // Never track the signed-in dashboard, admin panel, or API routes.
   if (
     !path ||
+    !path.startsWith("/") || path.startsWith("//") || path.includes("\\") ||
     path.startsWith("/dashboard") ||
     path.startsWith("/admin") ||
     path.startsWith("/api") ||
@@ -70,6 +71,31 @@ export async function POST(req: Request) {
       ipHash,
     })
     .catch(() => {});
+
+  const posthogToken = process.env.POSTHOG_PROJECT_TOKEN;
+  if (posthogToken && body.eventType === "page_view") {
+    const sessionId = typeof body.sessionId === "string" && /^[a-f0-9]{16}$/.test(body.sessionId)
+      ? body.sessionId : randomUUID();
+    // Public visits only: never forward account IDs, raw IPs, or arbitrary properties.
+    await fetch("https://us.i.posthog.com/i/v0/e/", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal: AbortSignal.timeout(3000),
+      body: JSON.stringify({
+        api_key: posthogToken,
+        event: "$pageview",
+        distinct_id: `careerpack-public:${sessionId}`,
+        properties: {
+          $current_url: new URL(path.split(/[?#]/)[0], publicOrigin(req)).href,
+          $process_person_profile: false,
+          $geoip_disable: true,
+          viewport: VIEWPORTS.has(body.viewport as string) ? body.viewport : undefined,
+          country: country ?? undefined,
+          referrerHost,
+        },
+      }),
+    }).catch(() => {});
+  }
 
   return new Response(null, { status: 204 });
 }

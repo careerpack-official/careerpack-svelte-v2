@@ -7,8 +7,8 @@
 # nightly Cloud backup to start failing silently after the project disappeared.
 #
 # The target is explicit and value-blind:
-#   PROD_ENV_FILE=backend/convex-self-hosted/convex.env   # current default
-#   PROD_ENV_FILE=backend/convex-cloud/prod.env          # future Cloud cutover
+#   PROD_ENV_FILE=backend/convex-cloud/prod.env          # main-v2 production
+#   PROD_ENV_FILE=backend/convex-self-hosted/convex.env   # legacy, explicit opt-in
 #
 # Both env files are gitignored credentials. This script never prints them.
 # Output goes OUTSIDE the repo because archives contain real user data.
@@ -26,7 +26,7 @@ set -euo pipefail
 # Resolve to repo root regardless of cron's working directory.
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 
-PROD_ENV_FILE="${PROD_ENV_FILE:-backend/convex-self-hosted/convex.env}"
+PROD_ENV_FILE="${PROD_ENV_FILE:-backend/convex-cloud/prod.env}"
 BACKUP_DIR="${BACKUP_DIR:-${HOME}/backups/careerpack}"
 KEEP="${KEEP:-14}"
 BACKUP_PASSPHRASE_FILE="${BACKUP_PASSPHRASE_FILE:-}"

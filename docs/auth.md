@@ -1,5 +1,8 @@
 # Auth
 
+**Google dan target terbaru (2026-10-10):** lihat
+[migrasi Careerpack](./careerpack-migration-2026-10-10.md); catatan target lama di bawah bersifat historis.
+
 `@convex-dev/auth` dengan 3 provider: **Password** (primary), **Anonymous** (fallback / dev), dan **Google** (OAuth — butuh konfigurasi env, lihat §1b + §5). Session token disimpan Convex, expose via `useConvexAuth()`.
 
 ## 1. Provider Stack
