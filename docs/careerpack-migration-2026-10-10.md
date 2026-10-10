@@ -32,6 +32,53 @@ destination deployment key. `scripts/backup-prod.sh` defaults to this same file
 and includes file storage. The legacy self-hosted target requires an explicit
 `PROD_ENV_FILE` override. Smoke checks do not trigger Dokploy by default.
 
+## Scheduled backups and local credentials
+
+`.github/workflows/backup-prod.yml` runs daily at 21:00 UTC (04:00 WIB) and can
+also be started manually. It reuses the permanent `CONVEX_DEPLOY_KEY` and
+`CLOUDFLARE_API_TOKEN` repository secrets. `BACKUP_PASSPHRASE` encrypts exports
+with GPG AES256 before they leave the runner. Archives include file storage;
+every JSONL row is validated, and the uploaded archive is downloaded, compared
+byte-for-byte, decrypted and ZIP-checked without importing into production.
+
+The private R2 bucket `careerpack-prod-backups` is separate from the disposable
+`careerpack-next-cache`. Its `daily/` prefix expires after 14 days. No public
+domain or r2.dev access is enabled; no plaintext Actions artifact is uploaded.
+Wrangler's 300 MiB upload ceiling requires switching to multipart S3 before
+exports grow to that size. GitHub cron starts can be delayed by GitHub.
+
+Keep an independent copy of the backup passphrase in a password manager. The
+operator's local recovery copy is outside this repository, protected by an
+owner-only Windows ACL; losing the passphrase makes encrypted backups unusable.
+Download an archive with `wrangler r2 object get <bucket/key> --remote --file <path>`,
+decrypt using `gpg --batch --pinentry-mode loopback --passphrase-file <private-file>
+--output <snapshot.zip> --decrypt <snapshot.zip.gpg>`, and validate before restoring.
+Restoring remains manual and requires a fresh rollback export first.
+
+The legacy VPS backup cron could not be inspected because both SSH routes timed
+out. Do not treat it as coverage for main-v2. Audit/remove it when the host is
+available, retaining old rollback snapshots.
+
+Local CLI credentials now use `careerpack-local-cli`, with no expiration and
+restricted permissions for deploy, environment configuration, diagnostic
+queries/logs and exporting backups. It excludes data writes/imports, pause,
+impersonation and integration/billing changes. The old migration key is no longer
+stored locally and expires automatically. `new-composio` remains the Actions key.
+
+## Email delivery
+
+Production now uses a sending-only Resend key restricted to the verified domain
+`contact.careerpack.org`. Sender: `CareerPack <noreply@contact.careerpack.org>`;
+reply-to: `hello@careerpack.org` (Hostinger). The migrated old sending key belonged
+to a different Resend account and rejected this domain with HTTP 403. An actual
+frontend password-reset request, not just a connector test, was delivered after
+rotation. Passwords are entered and changed by the account owner.
+
+Google-only accounts receive sign-in help rather than an unusable password-reset
+link. The public request response remains identical for existing/missing accounts;
+both email and IP rate limits stay enforced. Old Google reset links return a
+readable application error and cannot add a password login to a Google account.
+
 Production deployment workflows require GitHub Actions secrets `CONVEX_DEPLOY_KEY`
 and `CLOUDFLARE_API_TOKEN`. Both repository secrets were installed on 2026-10-10.
 The [Convex deployment](https://github.com/careerpack-official/careerpack-svelte-v2/actions/runs/38052102224)
@@ -39,8 +86,7 @@ and [Cloudflare deployment](https://github.com/careerpack-official/careerpack-sv
 completed successfully through GitHub Actions. Convex's `new-composio` key was
 recorded as used. Worker version `c5079068-d382-4ecf-acae-f3f0e915b331` serves 100%
 of traffic, with build ID `dff5e73faff235a2389fcc861cb2fe1108342e35`.
-The temporary migration key in the local CLI env file remains separate from
-GitHub secrets; replace it before later local deployments or backups.
+The local CLI file now uses the separate permanent key described above.
 
 Add permanent credentials at repository **Settings > Secrets and variables >
 Actions > New repository secret**. Store the main-v2 production deployment key

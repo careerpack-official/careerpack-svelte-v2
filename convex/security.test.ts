@@ -160,7 +160,7 @@ describe("public abuse and privacy boundaries", () => {
     expect(await t.run(ctx => ctx.db.query("oauthCodes").collect())).toEqual([]);
     const freshId = await t.run(ctx => ctx.db.insert("authSessions", { userId: owner, expirationTime: Date.now() + 86_400_000 }));
     expect(await t.withIdentity({ subject: `${owner}|${freshId}` }).query(api.admin.queries.amIAdmin, {})).toBe(true);
-    await expect(t.mutation(api.passwordReset.resetPassword, { token: rawToken, newPassword: "Again-password-123!" })).rejects.toThrow(/Token tidak valid/);
+    await expect(t.mutation(api.passwordReset.resetPassword, { token: rawToken, newPassword: "Again-password-123!" })).rejects.toThrow(/Tautan reset tidak valid/);
   });
   it("bounds signup at the authoritative server entry point", async () => {
     const t = setup();

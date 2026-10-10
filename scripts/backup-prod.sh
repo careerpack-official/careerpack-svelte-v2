@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 # Snapshot the ACTIVE CareerPack production Convex deployment to a ZIP.
 #
-# Production recovered to the self-hosted fallback on 2026-09-09 after the
-# previous Convex Cloud prod deployment became inaccessible. Do not rely on the
-# ambient Convex CLI project selection for backups: it is exactly what caused the
-# nightly Cloud backup to start failing silently after the project disappeared.
+# Production migrated to main-v2 on 2026-10-10. Never rely on ambient Convex
+# CLI project selection: that caused earlier nightly backups to silently fail.
 #
 # The target is explicit and value-blind:
 #   PROD_ENV_FILE=backend/convex-cloud/prod.env          # main-v2 production
@@ -38,6 +36,13 @@ if [[ ! -r "${PROD_ENV_FILE}" ]]; then
   exit 2
 fi
 
+if [[ -n "${BACKUP_PASSPHRASE_FILE}" ]]; then
+  if [[ ! -s "${BACKUP_PASSPHRASE_FILE}" ]] || ! command -v gpg >/dev/null 2>&1; then
+    echo "[backup] encryption requires a nonempty passphrase file and gpg." >&2
+    exit 2
+  fi
+fi
+
 # Every archive here is the full production dataset in plaintext. Keep it owner
 # only from the instant the CLI creates it, not as an after-the-fact chmod.
 umask 077
@@ -57,7 +62,7 @@ LISTING="$(unzip -Z1 "${OUT}")"
 case "${LISTING}" in
   *_tables/documents.jsonl*) ;;
   *)
-    echo "[backup] ${OUT} has no _tables manifest — treating as corrupt, removing." >&2
+    echo "[backup] ${OUT} has no _tables manifest â€” treating as corrupt, removing." >&2
     rm -f "${OUT}"
     exit 1
     ;;
@@ -84,7 +89,7 @@ while read -r entry; do
   esac
 done <<< "${LISTING}"
 if [[ "${BAD}" -ne 0 ]]; then
-  echo "[backup] ${OUT} failed JSON validation — treating as corrupt, removing." >&2
+  echo "[backup] ${OUT} failed JSON validation â€” treating as corrupt, removing." >&2
   rm -f "${OUT}"
   exit 1
 fi
@@ -97,10 +102,10 @@ echo "[backup] OK ${OUT} ($(du -h "${OUT}" | cut -f1), ${TABLES} tables, all row
 ENCRYPT_FAILED=0
 if [[ -n "${BACKUP_PASSPHRASE_FILE}" ]]; then
   if [[ ! -r "${BACKUP_PASSPHRASE_FILE}" ]]; then
-    echo "[backup] WARN: BACKUP_PASSPHRASE_FILE is not readable — archive left UNENCRYPTED." >&2
+    echo "[backup] WARN: BACKUP_PASSPHRASE_FILE is not readable â€” archive left UNENCRYPTED." >&2
     ENCRYPT_FAILED=1
   elif ! command -v gpg >/dev/null 2>&1; then
-    echo "[backup] WARN: gpg is not installed — archive left UNENCRYPTED." >&2
+    echo "[backup] WARN: gpg is not installed â€” archive left UNENCRYPTED." >&2
     ENCRYPT_FAILED=1
   elif gpg --batch --yes --symmetric --cipher-algo AES256 \
         --passphrase-file "${BACKUP_PASSPHRASE_FILE}" \
@@ -109,10 +114,15 @@ if [[ -n "${BACKUP_PASSPHRASE_FILE}" ]]; then
     OUT="${OUT}.gpg"
     echo "[backup] encrypted -> ${OUT} ($(du -h "${OUT}" | cut -f1))"
   else
-    echo "[backup] WARN: gpg failed — archive left UNENCRYPTED at ${OUT}." >&2
+    echo "[backup] WARN: gpg failed â€” archive left UNENCRYPTED at ${OUT}." >&2
     rm -f "${OUT}.gpg"
     ENCRYPT_FAILED=1
   fi
+fi
+
+if [[ "${ENCRYPT_FAILED}" -ne 0 ]]; then
+  echo "[backup] encryption was requested and did not happen; old snapshots retained." >&2
+  exit 1
 fi
 
 # Prune only after the new archive has been validated. `ls` with two globs is
@@ -129,8 +139,3 @@ find "${BACKUP_DIR}" -maxdepth 1 -type f \
       echo "[backup] pruning ${old}"
       rm -f "$old"
     done
-
-if [[ "${ENCRYPT_FAILED}" -ne 0 ]]; then
-  echo "[backup] encryption was requested and did not happen." >&2
-  exit 1
-fi

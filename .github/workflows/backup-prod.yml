@@ -1,0 +1,71 @@
+name: Backup production data
+
+on:
+  schedule:
+    - cron: '0 21 * * *' # 04:00 Asia/Jakarta; GitHub schedules use UTC.
+  workflow_dispatch:
+
+concurrency:
+  group: careerpack-production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check backup failure handling
+        run: bash scripts/backup-prod.test.sh
+      - name: Export, encrypt, upload and verify
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 8c0b86359883aaeeb6fd3ff73e54ec96
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$CONVEX_DEPLOY_KEY" in
+            prod:accomplished-vole-302\|*) ;;
+            *) echo "Backup key must target main-v2 production" >&2; exit 1 ;;
+          esac
+          test -n "$BACKUP_PASSPHRASE"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          umask 077
+          export BACKUP_DIR="$RUNNER_TEMP/careerpack-backup"
+          mkdir -p "$BACKUP_DIR"
+          export PROD_ENV_FILE="$BACKUP_DIR/target.env"
+          export BACKUP_PASSPHRASE_FILE="$BACKUP_DIR/passphrase"
+          printf 'CONVEX_DEPLOY_KEY=%s\n' "$CONVEX_DEPLOY_KEY" > "$PROD_ENV_FILE"
+          printf '%s\n' "$BACKUP_PASSPHRASE" > "$BACKUP_PASSPHRASE_FILE"
+          bash scripts/backup-prod.sh
+          archive=("$BACKUP_DIR"/careerpack-prod-*.zip.gpg)
+          test "${#archive[@]}" -eq 1
+          test -s "${archive[0]}"
+          object="careerpack-prod-backups/daily/$(basename "${archive[0]}")"
+          # shortcut: Wrangler uploads are capped at 300 MiB; switch to multipart S3 before snapshots reach that size.
+          pnpm --filter careerpack-frontend exec wrangler r2 object put "$object" --file "${archive[0]}" --remote
+          pnpm --filter careerpack-frontend exec wrangler r2 object get "$object" --file "$BACKUP_DIR/download.gpg" --remote
+          cmp "${archive[0]}" "$BACKUP_DIR/download.gpg"
+          gpg --batch --pinentry-mode loopback --passphrase-file "$BACKUP_PASSPHRASE_FILE" --output "$BACKUP_DIR/restore-check.zip" --decrypt "$BACKUP_DIR/download.gpg"
+          unzip -tq "$BACKUP_DIR/restore-check.zip"
+          sha256sum "${archive[0]}"
+          printf 'Verified encrypted backup: `%s`\n' "$object" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove runner credentials and plaintext
+        if: always()
+        run: |
+          rm -f -- "$RUNNER_TEMP/careerpack-backup/target.env" "$RUNNER_TEMP/careerpack-backup/passphrase" "$RUNNER_TEMP/careerpack-backup/restore-check.zip"
+          rm -f -- "$RUNNER_TEMP/careerpack-backup/"*.zip
