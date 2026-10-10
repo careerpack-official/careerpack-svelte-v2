@@ -66,7 +66,7 @@ export function CVPreviewDialog({
         drawerClassName="max-h-[95dvh]"
       >
         <DialogHeader>
-          <div className="flex flex-wrap items-center justify-between gap-2 pr-8">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <DialogTitle className="flex items-center gap-2">
               Lihat CV
               {activeLang && (
