@@ -90,6 +90,10 @@ const eslintConfig = [
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    files: ["app/**/opengraph-image.tsx"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "warn",
