@@ -1,10 +1,12 @@
 name: Deploy Cloudflare frontend
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: cloudflare-production
+  group: careerpack-production
   cancel-in-progress: false
 
 jobs:
@@ -41,6 +43,16 @@ jobs:
           curl --fail --silent --show-error --max-time 20 "$NEXT_PUBLIC_CONVEX_SITE_URL/api/health"
       - name: Build Worker
         run: pnpm build:cloudflare
+      - name: Deploy Convex functions
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: |
+          case "$CONVEX_DEPLOY_KEY" in
+            prod:accomplished-vole-302\|*) ;;
+            *) echo "CONVEX_DEPLOY_KEY must target Careerpack main-v2 production" >&2; exit 1 ;;
+          esac
+          pnpm exec convex deploy --yes --typecheck disable
+          curl --fail --silent --show-error --max-time 20 "$NEXT_PUBLIC_CONVEX_SITE_URL/api/health"
       - name: Deploy Worker and populate cache
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

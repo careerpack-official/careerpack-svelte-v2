@@ -58,11 +58,14 @@ must finish before deploying the replacement Worker version.
    backend readiness. Keep the existing DNS values for rollback. Update
    `frontend/wrangler.jsonc` with the verified custom-domain routes after cutover.
 
-The manual `cloudflare-deploy.yml` workflow runs from `main`, pins the account ID
-in its configuration, and expects `CLOUDFLARE_API_TOKEN` in GitHub Actions secrets.
-It checks the backend before building to prevent publishing fallback catalog
-pages produced while the backend is unavailable. Push and PR events do not
-trigger paid builds.
+The `cloudflare-deploy.yml` workflow runs automatically on every push to `main`
+and also supports manual dispatch. It pins the account ID and expects
+`CONVEX_DEPLOY_KEY` and `CLOUDFLARE_API_TOKEN` in GitHub Actions secrets.
+Type checks, lint, coverage tests, backend health and the Worker build must pass
+before deployment. It deploys the matching Convex functions, checks backend
+health again, then publishes the Worker and cache. A backend failure prevents
+frontend publication. Both deployment workflows share a production concurrency
+group to serialize releases. PR events do not deploy.
 
 ## Cache and security
 

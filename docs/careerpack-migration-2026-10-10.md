@@ -32,7 +32,7 @@ destination deployment key. `scripts/backup-prod.sh` defaults to this same file
 and includes file storage. The legacy self-hosted target requires an explicit
 `PROD_ENV_FILE` override. Smoke checks do not trigger Dokploy by default.
 
-Manual deployment workflows require GitHub Actions secrets `CONVEX_DEPLOY_KEY`
+Production deployment workflows require GitHub Actions secrets `CONVEX_DEPLOY_KEY`
 and `CLOUDFLARE_API_TOKEN`. Both repository secrets were installed on 2026-10-10.
 The [Convex deployment](https://github.com/careerpack-official/careerpack-svelte-v2/actions/runs/38052102224)
 and [Cloudflare deployment](https://github.com/careerpack-official/careerpack-svelte-v2/actions/runs/38052511392)
@@ -49,9 +49,12 @@ token as `CLOUDFLARE_API_TOKEN`. These are Actions secrets, not public variables
 The Cloudflare account ID is already pinned in the workflow; Google OAuth secrets
 stay in Convex, and the PostHog ingestion token stays in Worker secret storage.
 
-Actions is enabled and both repository secrets are present. The deployment
-workflows still use `workflow_dispatch` only, and the Worker has no native
-Cloudflare build trigger. Changing `main` does not automatically deploy.
+Actions is enabled and both repository secrets are present. Every push to `main`
+now triggers the Cloudflare release workflow, which validates and builds first,
+deploys Convex functions, then publishes the frontend. Manual dispatch remains
+available. The backend-only workflow remains manual; both workflows share a
+production concurrency group. Cloudflare native build triggers remain disabled
+because GitHub Actions owns automatic releases.
 An existing `production` environment can also hold the secrets;
 repository secrets work with the current workflow's environment declaration.
 

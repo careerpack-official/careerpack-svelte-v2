@@ -3,7 +3,7 @@ name: Deploy Convex
 on:
   workflow_dispatch:
 concurrency:
-  group: convex-deploy
+  group: careerpack-production
   cancel-in-progress: false
 
 jobs:
