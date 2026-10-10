@@ -1,0 +1,18 @@
+diff --git a/dist/compiled/@next/font/dist/google/loader.js b/dist/compiled/@next/font/dist/google/loader.js
+index f8e585c491caac87501f66a307c0fac21e239c08..243bfb810e635382e5c9348063d1837aafa2b1e5 100644
+--- a/dist/compiled/@next/font/dist/google/loader.js
++++ b/dist/compiled/@next/font/dist/google/loader.js
+@@ -119,7 +119,12 @@ const nextFontGoogleFontLoader = async ({ functionName, data, emitFontFile, isDe
+             if (fontFileBuffer == null) {
+                 (0, next_font_error_1.nextFontError)(`Failed to fetch \`${fontFamily}\` from Google Fonts.`);
+             }
+-            const ext = /\.(woff|woff2|eot|ttf|otf)$/.exec(googleFontFileUrl)[1];
++            // shortcut: extensionless Google responses require WOFF2 bytes; remove after the upstream fix.
++            const ext = /\.(woff|woff2|eot|ttf|otf)(?:\?.*)?$/.exec(googleFontFileUrl)?.[1]
++                ?? (fontFileBuffer.subarray(0, 4).toString() === 'wOF2' ? 'woff2' : undefined);
++            if (!ext) {
++                (0, next_font_error_1.nextFontError)('Unsupported Google font response format.');
++            }
+             // Emit font file to .next/static/media
+             const selfHostedFileUrl = emitFontFile(fontFileBuffer, ext, preloadFontFile, !!adjustFontFallbackMetrics);
+             return {

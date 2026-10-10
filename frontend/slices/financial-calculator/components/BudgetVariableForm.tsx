@@ -176,7 +176,7 @@ export function BudgetVariableForm({ existing, trigger }: BudgetVariableFormProp
 
           <div className="space-y-2">
             <Label>Ikon</Label>
-            <div className="grid grid-cols-8 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
               {BUDGET_ICON_NAMES.map((name) => {
                 const Icon = iconFor(name);
                 const active = name === iconName;
@@ -187,7 +187,7 @@ export function BudgetVariableForm({ existing, trigger }: BudgetVariableFormProp
                     onClick={() => setIconName(name)}
                     aria-label={`Ikon ${name}`}
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-md border transition-colors",
+                      "flex h-[44px] w-full items-center justify-center rounded-md border transition-colors lg:h-10",
                       active
                         ? "border-brand bg-brand-muted text-brand"
                         : "border-border bg-card hover:border-muted-foreground",
@@ -202,7 +202,7 @@ export function BudgetVariableForm({ existing, trigger }: BudgetVariableFormProp
 
           <div className="space-y-2">
             <Label>Warna</Label>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
               {BUDGET_COLOR_PALETTE.map((hex) => {
                 const active = hex === color;
                 return (
@@ -212,7 +212,7 @@ export function BudgetVariableForm({ existing, trigger }: BudgetVariableFormProp
                     onClick={() => setColor(hex)}
                     aria-label={`Warna ${hex}`}
                     className={cn(
-                      "h-8 w-full rounded-md border-2 transition-transform",
+                      "h-[44px] w-full rounded-md border-2 transition-transform lg:h-8",
                       active ? "border-foreground scale-105" : "border-transparent hover:scale-105",
                     )}
                     style={{ backgroundColor: hex }}
