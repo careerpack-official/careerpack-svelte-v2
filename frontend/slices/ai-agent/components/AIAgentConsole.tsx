@@ -365,10 +365,10 @@ export function AIAgentConsole({
 
           <div className="flex-1 flex flex-col min-w-0 min-h-0">
             {/* Header — sticky at top of right column. */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+            <div className="shrink-0 flex flex-wrap items-center gap-2 pl-4 pr-14 py-3 border-b border-border bg-card">
               <button
                 type="button"
-                className="md:hidden inline-flex h-9 w-9 -ml-1 items-center justify-center rounded-md hover:bg-accent"
+                className="md:hidden inline-flex h-[44px] w-[44px] shrink-0 -ml-1 items-center justify-center rounded-md hover:bg-accent"
                 onClick={() => setMobileHistoryOpen((v) => !v)}
                 aria-label="Toggle riwayat percakapan"
               >
@@ -377,7 +377,7 @@ export function AIAgentConsole({
               <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-from to-brand-to text-brand-foreground flex items-center justify-center shrink-0">
                 <Sparkles className="w-4 h-4" />
               </span>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-[5rem]">
                 <p className="text-sm font-semibold truncate">
                   {activeSession?.title || "Asisten AI"}
                 </p>
