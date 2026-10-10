@@ -32,7 +32,7 @@ set -uo pipefail
 BASE_URL="${BASE_URL:-https://careerpack.org}"
 WATCH_TIMEOUT="${WATCH_TIMEOUT:-900}"
 POLL="${POLL:-30}"
-TRIGGER_AFTER="${TRIGGER_AFTER:-300}"
+TRIGGER_AFTER="${TRIGGER_AFTER:-0}" # Cloudflare deploys; legacy Dokploy triggering is opt-in.
 # Not a secret — it is the application id visible in the Dokploy URL. The key is
 # read from the environment and never echoed.
 DOKPLOY_APP_ID="${DOKPLOY_APP_ID:-9UFO92wvF0mQjEydEvhrP}"

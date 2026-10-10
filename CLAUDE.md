@@ -1,5 +1,10 @@
 # CLAUDE.md
 
+**Current migration (2026-10-10):** [Careerpack migration](docs/careerpack-migration-2026-10-10.md)
+supersedes the older deployment targets below. The prepared production target is
+`hello-79d5d/main-v2/accomplished-vole-302` in Sydney. Deploy and backup commands
+use `backend/convex-cloud/prod.env`; never infer a target from ambient CLI login.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands

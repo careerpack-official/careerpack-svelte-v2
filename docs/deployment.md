@@ -1,5 +1,8 @@
 # Deployment
 
+> **Target terbaru (2026-10-10):** [migrasi Careerpack](./careerpack-migration-2026-10-10.md)
+> menggantikan catatan target lama di bawah.
+
 > **Cloudflare migration (2026-10-09):** the Workers release configuration and
 > current Convex production target are documented in
 > [cloudflare-deployment.md](./cloudflare-deployment.md). The Dokploy instructions
