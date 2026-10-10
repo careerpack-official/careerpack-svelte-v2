@@ -102,10 +102,10 @@ export function ResponsiveAlertDialogContent({
   }
   return (
     <DrawerContent
-      className={cn("max-h-[90dvh]", drawerClassName)}
+      className={cn("mx-auto w-full min-w-0 max-h-[90dvh] sm:max-w-lg", drawerClassName)}
       {...(props as React.ComponentProps<typeof DrawerContent>)}
     >
-      <div className="overflow-y-auto px-4 pb-4">{children}</div>
+      <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto p-4 pb-[max(1rem,var(--safe-bottom))]">{children}</div>
     </DrawerContent>
   );
 }
@@ -116,7 +116,7 @@ export function ResponsiveAlertDialogHeader({
 }: React.ComponentProps<"div">) {
   const mode = useMode();
   const Header = mode === "dialog" ? AlertDialogHeader : DrawerHeader;
-  return <Header className={cn(className)} {...props} />;
+  return <Header className={cn(mode === "drawer" && "p-0 text-left", className)} {...props} />;
 }
 
 export function ResponsiveAlertDialogFooter({
@@ -125,7 +125,7 @@ export function ResponsiveAlertDialogFooter({
 }: React.ComponentProps<"div">) {
   const mode = useMode();
   const Footer = mode === "dialog" ? AlertDialogFooter : DrawerFooter;
-  return <Footer className={cn(className)} {...props} />;
+  return <Footer className={cn(mode === "drawer" && "m-0 p-0", className)} {...props} />;
 }
 
 export function ResponsiveAlertDialogTitle(

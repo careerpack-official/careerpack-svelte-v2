@@ -69,7 +69,7 @@ export function LibraryPicker({ open, onOpenChange, accept = "any", onPick }: Pr
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="sm:max-w-3xl">
+      <ResponsiveDialogContent size="3xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Pilih dari Library</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>

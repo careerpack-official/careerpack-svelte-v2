@@ -66,7 +66,7 @@ export function SkillRoadmap() {
         onValueChange={(v) => r.setActiveTab(v as "my" | "browse" | "time-machine")}
         className="space-y-4"
       >
-        <TabsList variant="equal" cols={3} className="w-full sm:max-w-xl">
+        <TabsList variant="equal" cols={3}>
           <TabsTrigger value="my">
             <Trophy className="w-3.5 h-3.5" aria-hidden />
             Skill Saya

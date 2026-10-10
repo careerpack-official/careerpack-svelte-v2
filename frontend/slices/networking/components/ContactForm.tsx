@@ -73,7 +73,7 @@ export function ContactForm({ trigger, onSubmit, initial }: ContactFormProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="sm:max-w-lg">
+      <ResponsiveDialogContent size="lg">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
             {isEdit ? "Ubah Kontak" : "Tambah Kontak"}

@@ -89,7 +89,7 @@ export function PortfolioForm({
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       {trigger && <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>}
-      <ResponsiveDialogContent className="sm:max-w-2xl">
+      <ResponsiveDialogContent size="2xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
             {mode === "edit" ? "Edit Portofolio" : "Tambah Portofolio"}

@@ -422,7 +422,7 @@ export function FileUpload({
           if (!open) cancelCrop();
         }}
       >
-        <DialogContent className="max-w-xl">
+        <DialogContent size="xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CropIcon className="w-4 h-4 text-brand" />

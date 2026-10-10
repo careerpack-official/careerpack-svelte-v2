@@ -155,7 +155,7 @@ export function AddJobDialog({ open, onOpenChange, onCreated }: Props) {
         onOpenChange(o);
       }}
     >
-      <ResponsiveDialogContent className="sm:max-w-2xl">
+      <ResponsiveDialogContent size="2xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Tambah Lowongan</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>

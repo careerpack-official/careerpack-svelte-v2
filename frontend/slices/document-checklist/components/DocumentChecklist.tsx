@@ -65,7 +65,7 @@ export function DocumentChecklist() {
         }}
         className="space-y-6"
       >
-        <TabsList variant="segmented">
+        <TabsList variant="equal" cols={2}>
           <TabsTrigger value="local" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             Kerja Lokal

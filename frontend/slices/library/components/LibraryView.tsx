@@ -117,7 +117,7 @@ export function LibraryView() {
       />
 
       <ResponsiveDialog open={showUpload} onOpenChange={setShowUpload}>
-        <ResponsiveDialogContent className="sm:max-w-lg">
+        <ResponsiveDialogContent size="lg">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Unggah ke Library</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>

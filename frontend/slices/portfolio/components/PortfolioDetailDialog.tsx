@@ -64,7 +64,7 @@ export function PortfolioDetailDialog({
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="sm:max-w-3xl">
+      <ResponsiveDialogContent size="3xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="flex items-center gap-2">
             {item.title}

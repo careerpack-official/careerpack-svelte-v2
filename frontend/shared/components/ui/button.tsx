@@ -10,7 +10,7 @@ const buttonVariants = cva(
   // Brutalism presets read punchy (offset shadow + 2px border), refined
   // presets read polished (soft shadow + rounded) because the lift motion
   // is identical; only the theme tokens change.
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex min-w-0 max-w-full min-h-[44px] items-center justify-center gap-2 whitespace-normal break-words rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 lg:min-h-0 lg:whitespace-nowrap [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -28,10 +28,10 @@ const buttonVariants = cva(
           "text-primary underline-offset-4 hover:underline hover:shadow-none hover:translate-y-0",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-auto px-4 py-2 lg:h-9",
+        sm: "h-auto rounded-md px-3 py-2 text-xs lg:h-8 lg:py-0",
+        lg: "h-auto px-8 py-2 lg:h-10",
+        icon: "h-[44px] w-[44px] min-w-[44px] shrink-0 lg:h-9 lg:w-9 lg:min-w-0",
       },
     },
     defaultVariants: {

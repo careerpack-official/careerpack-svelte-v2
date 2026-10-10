@@ -18,9 +18,6 @@ export function FinancialCalculator() {
   const plan = useFinancialPlan();
 
   return (
-    // xl (max-w-7xl), not lg: every tab is now a two-column
-    // inputs | results split, and at 6xl the results rail squeezed the
-    // sliders and the donut into ~340px.
     <PageContainer>
       <ResponsivePageHeader
         title="Kalkulator Keuangan"
@@ -28,9 +25,7 @@ export function FinancialCalculator() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        {/* Full-width on mobile; capped on desktop so three tabs don't
-            stretch across the whole 1280px container. */}
-        <TabsList variant="equal" cols={3} className="lg:max-w-2xl">
+        <TabsList variant="equal" cols={3}>
           <TabsTrigger value="budget">
             <span className="sm:hidden">Budget</span>
             <span className="hidden sm:inline">Perencanaan Budget</span>
