@@ -1,8 +1,8 @@
 import { mutation, internalMutation, internalAction, httpAction } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { v } from "convex/values";
-import { renderResetEmail, sendEmail } from "./_shared/email";
+import { ConvexError, v } from "convex/values";
+import { renderEmail, renderResetEmail, sendEmail } from "./_shared/email";
 import { extractClientIp, sha256Hex } from "./_shared/clientIp";
 import { rejectIfBadOrigin } from "./_shared/origin";
 import { redactEmail } from "./_shared/redact";
@@ -110,10 +110,10 @@ function constantTimeEq(a: string, b: string): boolean {
 }
 
 function validatePassword(password: string) {
-  if (password.length < 8) throw new Error("Kata sandi minimal 8 karakter");
-  if (password.length > 128) throw new Error("Kata sandi terlalu panjang (maks 128)");
+  if (password.length < 8) throw new ConvexError("Kata sandi minimal 8 karakter");
+  if (password.length > 128) throw new ConvexError("Kata sandi terlalu panjang (maks 128)");
   if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-    throw new Error("Kata sandi harus mengandung huruf dan angka");
+    throw new ConvexError("Kata sandi harus mengandung huruf dan angka");
   }
 }
 
@@ -138,9 +138,8 @@ async function doRequestReset(ctx: MutationCtx, email: string): Promise<{ ok: tr
   // Per-email rate limit. 5 requests/hour bucketed by user._id (1:1 to email).
   const recent = await ctx.db
     .query("passwordResetTokens")
-    .withIndex("by_user", (q) => q.eq("userId", user._id))
-    .filter((q) => q.gte(q.field("_creationTime"), now - RESET_RATE_WINDOW_MS))
-    .collect();
+    .withIndex("by_user", (q) => q.eq("userId", user._id).gte("_creationTime", now - RESET_RATE_WINDOW_MS))
+    .take(RESET_RATE_MAX);
   if (recent.length >= RESET_RATE_MAX) {
     console.warn(`[password-reset] per-email rate-limited userId=${user._id} (${recent.length}/${RESET_RATE_MAX} in last hour)`);
     return { ok: true as const };
@@ -159,15 +158,22 @@ async function doRequestReset(ctx: MutationCtx, email: string): Promise<{ ok: tr
   // The previous PBKDF2 random-salt hash forced a linear scan + verify.
   const tokenHash = await hmacToken(rawToken);
 
+  const passwordAccount = await ctx.db
+    .query("authAccounts")
+    .withIndex("userIdAndProvider", (q) => q.eq("userId", user._id).eq("provider", "password"))
+    .first();
+
   await ctx.db.insert("passwordResetTokens", {
     userId: user._id,
     tokenHash,
     expiresAt: now + TOKEN_TTL_MS,
+    // Keep the same email-rate-limit bucket, but never mint a usable Google reset.
+    ...(!passwordAccount ? { usedAt: now } : {}),
   });
 
   await ctx.scheduler.runAfter(0, internal.passwordReset.deliverResetEmail, {
     to: normalized,
-    rawToken,
+    ...(passwordAccount ? { rawToken } : {}),
   });
 
   return { ok: true as const };
@@ -187,6 +193,7 @@ async function doRequestReset(ctx: MutationCtx, email: string): Promise<{ ok: tr
  */
 export const _ipGatedRequestReset = internalMutation({
   args: { email: v.string(), ipHash: v.string() },
+  returns: v.object({ ok: v.literal(true) }),
   handler: async (ctx, { email, ipHash }) => {
     const now = Date.now();
     const windowStart = now - RESET_RATE_WINDOW_MS;
@@ -280,11 +287,23 @@ export const handleRequestReset = httpAction(async (ctx, request) => {
  * over any account.
  */
 export const deliverResetEmail = internalAction({
-  args: { to: v.string(), rawToken: v.string() },
+  args: { to: v.string(), rawToken: v.optional(v.string()) },
+  returns: v.union(
+    v.object({ ok: v.literal(true), provider: v.union(v.literal("resend"), v.literal("suppressed")) }),
+    v.object({ ok: v.literal(false), reason: v.string() }),
+  ),
   handler: async (ctx, args) => {
     const baseUrl = (process.env.APP_URL ?? "https://careerpack.local").replace(/\/$/, "");
-    const link = `${baseUrl}/reset-password/${encodeURIComponent(args.rawToken)}`;
-    const { subject, html, text } = await renderResetEmail(link, args.to);
+    const { subject, html, text } = args.rawToken
+      ? await renderResetEmail(`${baseUrl}/reset-password/${encodeURIComponent(args.rawToken)}`, args.to)
+      : await renderEmail({
+        subject: "Masuk ke akun CareerPack",
+        preheader: "Akun kamu menggunakan Google, bukan kata sandi CareerPack.",
+        bodyHtml: '<p>Akun ini menggunakan Google dan tidak memiliki kata sandi CareerPack untuk direset. Buka halaman masuk dan pilih <strong>Masuk dengan Google</strong> menggunakan alamat email ini.</p><p>Tidak meminta bantuan masuk? Abaikan email ini.</p>',
+        bodyText: "Akun ini menggunakan Google dan tidak memiliki kata sandi CareerPack untuk direset. Buka halaman masuk dan pilih Masuk dengan Google menggunakan alamat email ini. Tidak meminta bantuan masuk? Abaikan email ini.",
+        ctaUrl: `${baseUrl}/login`,
+        ctaLabel: "Buka halaman masuk",
+      }, args.to);
     const result = await sendEmail(ctx, {
       to: args.to,
       subject,
@@ -305,6 +324,7 @@ export const resetPassword = mutation({
     token: v.string(),
     newPassword: v.string(),
   },
+  returns: v.object({ ok: v.literal(true) }),
   handler: async (ctx, args) => {
     validatePassword(args.newPassword);
 
@@ -350,7 +370,7 @@ export const resetPassword = mutation({
       match = directHit;
     }
 
-    if (!match) throw new Error("Token tidak valid atau sudah kedaluwarsa");
+    if (!match) throw new ConvexError("Tautan reset tidak valid atau sudah kedaluwarsa. Minta tautan baru dari halaman Lupa Password.");
 
     const account = await ctx.db
       .query("authAccounts")
@@ -360,7 +380,7 @@ export const resetPassword = mutation({
       .first();
 
     if (!account) {
-      throw new Error("Akun tidak menggunakan sandi — tidak bisa direset");
+      throw new ConvexError("Akun ini menggunakan Google. Kembali ke halaman masuk dan pilih Masuk dengan Google.");
     }
 
     const newSecret = await hashSecret(args.newPassword);

@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       title="Lupa Password"
-      description="Masukkan email akun Anda untuk menerima tautan reset."
+      description="Masukkan email akun Anda untuk menerima petunjuk masuk."
     >
       <div className="space-y-4">
         {submitted ? (
@@ -51,8 +51,8 @@ export default function ForgotPasswordPage() {
             <Alert className="bg-success/10 border-success/30">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription className="text-success">
-                Jika email Anda terdaftar, kami sudah mengirim tautan reset
-                sandi. Tautan berlaku 30 menit.
+                Jika email Anda terdaftar, kami sudah mengirim petunjuk masuk
+                atau reset sandi. Tautan reset berlaku 30 menit.
               </AlertDescription>
             </Alert>
             <Alert>
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
                 <span className="block text-sm text-muted-foreground">
                   Cek folder <strong>Spam</strong> atau <strong>Promotions</strong>.
                   Domain kami baru — sebagian provider belum mengenali. Tandai email
-                  dari <code>support@careerpack.org</code> sebagai &quot;Bukan Spam&quot;
+                  dari <code>noreply@contact.careerpack.org</code> sebagai &quot;Bukan Spam&quot;
                   supaya pesan berikutnya masuk inbox.
                 </span>
               </AlertDescription>

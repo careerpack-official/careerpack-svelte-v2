@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
-import { notify } from "@/shared/lib/notify";
+import { humanMessage, notify } from "@/shared/lib/notify";
 import { ArrowLeft, Eye, EyeOff, Inbox, Lock } from "lucide-react";
 import { api } from "../../../../../convex/_generated/api";
 import { AuthShell } from "@/shared/containers/AuthShell";
@@ -57,7 +57,7 @@ export default function ResetPasswordPage({ params }: PageProps) {
       notify.success("Sandi berhasil direset. Silakan masuk dengan sandi baru.");
       router.push("/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal mereset sandi");
+      setError(humanMessage(err, "Gagal mereset sandi. Coba lagi atau minta tautan baru."));
     } finally {
       setIsLoading(false);
     }
