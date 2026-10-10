@@ -22,7 +22,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
 import { useHapticPress } from "../interactions/MicroInteractions";
-import { type MoreAppTile } from "./navConfig";
+import { PRIMARY_NAV, type NavItem, type MoreAppTile } from "./navConfig";
 import { useVisibleMoreApps } from "@/shared/hooks/useVisibleMoreApps";
 import {
   useUnreadNotifications,
@@ -45,15 +45,14 @@ export function MoreDrawer({ open, onOpenChange }: MoreDrawerProps) {
   const visibleMore = useVisibleMoreApps();
   const unreadBadge = formatUnreadBadge(useUnreadNotifications());
   const [query, setQuery] = useState("");
-  // Inject the live unread count onto the notifications tile via its
-  // existing `badge` prop (rendered as the corner badge on the icon).
   const tiles = useMemo(
     () =>
-      unreadBadge
-        ? visibleMore.map((m) =>
-            m.id === "notifications" ? { ...m, badge: unreadBadge } : m,
-          )
-        : visibleMore,
+      [
+        ...PRIMARY_NAV.map((m) => ({ ...m, hue: "from-brand-from to-brand-to" })),
+        ...visibleMore,
+      ].map((m) =>
+        m.id === "notifications" && unreadBadge ? { ...m, badge: unreadBadge } : m,
+      ),
     [visibleMore, unreadBadge],
   );
   const filteredMore = useMemo(() => {
@@ -250,7 +249,7 @@ function InstallBanner({ onAfter }: { onAfter: () => void }) {
 }
 
 interface TileButtonProps {
-  tile: MoreAppTile;
+  tile: NavItem & Pick<MoreAppTile, "hue" | "badge">;
   onClick: () => void;
 }
 

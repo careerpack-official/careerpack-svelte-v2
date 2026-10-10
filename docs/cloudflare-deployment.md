@@ -13,6 +13,10 @@ Cloudflare R2 bucket contains only the disposable Next.js incremental cache.
 - Cache bucket: `careerpack-next-cache`; SQLite Durable Object queue handles ISR.
 - Next.js image optimization uses the Cloudflare Images binding.
 
+Keep Wrangler `keep_names: false`: next-themes serializes its theme bootstrap,
+and injected name helpers otherwise cause a browser ReferenceError.
+See [OpenNext keep_names](https://opennext.js.org/cloudflare/howtos/keep_names).
+
 The frontend went live on Cloudflare on 2026-10-10 (Asia/Jakarta), from
 `main` revision `f79bb6d6f22eeab402925b4b7805c6fa7df2c5b1`.
 Both `careerpack.org` and `www.careerpack.org` are Worker custom domains.

@@ -143,7 +143,7 @@ export function AdminPanel() {
     if (amIAdmin === false) router.replace("/dashboard");
   }, [amIAdmin, router]);
 
-  if (amIAdmin === undefined || amIAdmin === false) return <LoadingScreen />;
+  if (amIAdmin !== true || amISuperAdmin === undefined) return <LoadingScreen />;
 
   return (
     <PageContainer size="xl" className="min-w-0 space-y-6 overflow-x-hidden">
