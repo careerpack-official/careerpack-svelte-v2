@@ -45,7 +45,7 @@ export function MarketingFooter() {
               </li>
               <li>
                 <a
-                  href="https://github.com/rahmanef63/CareerPack"
+                href="https://github.com/careerpack-official/careerpack-svelte-v2"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block py-1 hover:text-foreground"

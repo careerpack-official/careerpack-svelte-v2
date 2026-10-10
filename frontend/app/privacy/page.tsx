@@ -29,9 +29,9 @@ export default function PrivacyPage() {
         <h2>Domain Resmi CareerPack</h2>
         <p>
           Antarmuka pengguna dan layar OAuth utama berada di <code>careerpack.org</code>.
-          Backend aplikasi menggunakan <code>api.careerpack.org</code>, sedangkan HTTP
+          Backend aplikasi menggunakan <code>accomplished-vole-302.ap-southeast-2.convex.cloud</code>, sedangkan HTTP
           actions, metadata OAuth/MCP, dan registrasi klien menggunakan{" "}
-          <code>site.careerpack.org</code>. Ketiganya adalah custom domain CareerPack.
+          <code>accomplished-vole-302.ap-southeast-2.convex.site</code>. Backend ini dikelola CareerPack melalui layanan Convex di wilayah Sydney.
           Pada alur OAuth ke aplikasi pihak ketiga, browser dapat diarahkan ke domain
           aplikasi tersebut setelah Anda menyetujui akses; domain tujuan ditampilkan
           pada layar persetujuan sebelum Anda melanjutkan.

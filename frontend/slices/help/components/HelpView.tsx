@@ -87,7 +87,7 @@ const SHORTCUTS: ReadonlyArray<Shortcut> = [
 ];
 
 const SUPPORT_EMAIL = "support@careerpack.org";
-const GITHUB_URL = "https://github.com/rahmanef63/CareerPack";
+const GITHUB_URL = "https://github.com/careerpack-official/careerpack-svelte-v2";
 const APP_VERSION = "1.0.0";
 
 interface FeatureGuide {

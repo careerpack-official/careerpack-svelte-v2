@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const LAST_UPDATED = "18 September 2026";
+const LAST_UPDATED = "10 Oktober 2026";
 
 export default function TermsPage() {
   return (
@@ -43,8 +43,8 @@ export default function TermsPage() {
         <p>
           Alur otorisasi browser CareerPack menggunakan domain resmi{" "}
           <code>careerpack.org</code>. Layanan backend dan metadata OAuth/MCP
-          menggunakan custom domain <code>api.careerpack.org</code> dan{" "}
-          <code>site.careerpack.org</code>. Setelah Anda memberi izin kepada aplikasi
+          menggunakan layanan Convex di <code>accomplished-vole-302.ap-southeast-2.convex.cloud</code> dan{" "}
+          <code>accomplished-vole-302.ap-southeast-2.convex.site</code>. Setelah Anda memberi izin kepada aplikasi
           lain, kode otorisasi hanya dikirim ke <code>redirect_uri</code> yang telah
           didaftarkan atau diizinkan untuk aplikasi tersebut.
         </p>
