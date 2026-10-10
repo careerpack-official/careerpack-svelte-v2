@@ -140,7 +140,7 @@ export function PortfolioView() {
   };
 
   return (
-    <PageContainer size="lg" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Portofolio"
         description="Showcase proyek, sertifikasi, desain, tulisan, dan karya lainnya."

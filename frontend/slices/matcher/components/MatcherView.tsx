@@ -113,7 +113,7 @@ export function MatcherView() {
   );
 
   return (
-    <PageContainer size="xl" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Pencocok Lowongan"
         description="AI mencocokkan profil + scan ATS untuk CV Anda."

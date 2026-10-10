@@ -125,7 +125,7 @@ const GUIDES: ReadonlyArray<Guide> = [
 
 export function HelpView() {
   return (
-    <PageContainer size="md" className="space-y-8 overflow-x-hidden">
+    <PageContainer className="space-y-8 overflow-x-hidden">
       <ResponsivePageHeader
         title="Pusat Bantuan"
         description="Jawaban cepat, panduan singkat, dan cara menghubungi tim CareerPack."

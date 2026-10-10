@@ -230,7 +230,7 @@ export function NotificationsView() {
   };
 
   return (
-    <PageContainer size="lg" className="space-y-4">
+    <PageContainer className="space-y-4">
       <ResponsivePageHeader
         title="Notifikasi"
         description={

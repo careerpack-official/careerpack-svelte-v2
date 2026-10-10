@@ -136,7 +136,7 @@ export function DashboardHome() {
     : rawName.split(" ")[0] || "pengguna";
 
   return (
-    <PageContainer size="xl" className="flex flex-col gap-6">
+    <PageContainer className="flex flex-col gap-6">
       <Reveal id="dash-hero" delay={0}>
         <ResponsivePageHeader
           variant="split"

@@ -7,6 +7,7 @@ import { GoalsTab } from "./tabs/GoalsTab";
 import { ApplicationsTab } from "./tabs/ApplicationsTab";
 import { ContactsTab } from "./tabs/ContactsTab";
 import { BatchesTab } from "./tabs/BatchesTab";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
 
 /**
  * Database hub — admin-style view of every per-user table with
@@ -17,7 +18,7 @@ import { BatchesTab } from "./tabs/BatchesTab";
  */
 export function DatabaseView() {
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6">
+    <PageContainer className="space-y-6">
       <header className="space-y-1.5">
         <h1 className="text-2xl font-bold tracking-tight">Data Saya</h1>
         <p className="text-sm text-muted-foreground">
@@ -44,6 +45,6 @@ export function DatabaseView() {
         <TabsContent value="contacts"><ContactsTab /></TabsContent>
         <TabsContent value="batches"><BatchesTab /></TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

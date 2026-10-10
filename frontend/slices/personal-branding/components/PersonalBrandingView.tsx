@@ -109,7 +109,7 @@ export function PersonalBrandingView() {
     : "";
 
   return (
-    <PageContainer size="lg" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Personal Branding"
         description="Pengganti Linktree / Bento — punya halaman publik dalam 1 menit, tanpa coding."

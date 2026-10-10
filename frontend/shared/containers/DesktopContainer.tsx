@@ -36,7 +36,7 @@ export function DesktopContainer({
       <AppSidebar onAITap={onAITap} aiActive={aiActive} />
       <SidebarInset id="main-content">
         <SiteHeader onAITap={onAITap} />
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-4 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col px-4 md:px-6">
           {children}
         </div>
         <DashboardFooter />

@@ -49,7 +49,7 @@ export function DocumentChecklist() {
   return (
     // xl (not lg): CategorySection runs a rail + list two-column from `lg`
     // up, and a 6xl frame left the list too narrow to be worth splitting.
-    <PageContainer size="xl">
+    <PageContainer>
       <ResponsivePageHeader
         title="Ceklis Dokumen"
         description="Kelola semua dokumen yang diperlukan untuk melamar pekerjaan"

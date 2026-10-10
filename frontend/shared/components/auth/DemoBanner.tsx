@@ -22,7 +22,7 @@ export function DemoBanner() {
   return (
     <div
       role="status"
-      className="relative overflow-hidden rounded-xl border border-brand/30 bg-brand-muted/40 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className="relative mx-auto mt-4 w-full min-w-0 max-w-7xl overflow-hidden rounded-xl sm:mt-6 border border-brand/30 bg-brand-muted/40 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex items-center gap-2.5 min-w-0">
         <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-brand-foreground">

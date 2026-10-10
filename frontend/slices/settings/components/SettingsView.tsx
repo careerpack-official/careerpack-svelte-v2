@@ -73,7 +73,7 @@ export function SettingsView() {
   }, []);
 
   return (
-    <PageContainer size="sm" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Pengaturan"
         description="Atur profil, tampilan, dan koneksi AI Anda dari satu tempat."

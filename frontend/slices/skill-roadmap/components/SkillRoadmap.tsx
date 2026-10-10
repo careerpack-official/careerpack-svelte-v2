@@ -48,7 +48,7 @@ export function SkillRoadmap() {
     ?? r.roadmapData.reduce((s, n) => s + n.estimatedHours, 0);
 
   return (
-    <PageContainer size="xl">
+    <PageContainer>
       <ResponsivePageHeader
         title={
           <span className="flex items-center gap-3">

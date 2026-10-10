@@ -353,7 +353,7 @@ export function CVGenerator() {
   }, [previewOpen, pendingExport]);
 
   return (
-    <PageContainer size="lg">
+    <PageContainer>
       {/*
         Header, in two rows with distinct jobs — it used to be one flex-wrap
         row holding eight controls of near-identical weight, which wrapped
