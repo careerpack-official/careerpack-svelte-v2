@@ -59,14 +59,13 @@ function Calendar({
   // `weekdays` / `week` / `weekday` are inert on table boxes (`flex-1` in
   // particular did nothing), which left auto table layout to hand the first
   // weekday cell all the slack — the "Sen … Sel Rab Kam" header bug.
-  // Equal columns now come from `w-[--cell-size]` on every header cell plus
-  // `w-full` on the table: at the natural size that is 7 × cell-size, and any
-  // extra width is distributed evenly. Row rhythm is `border-spacing-y`
+  // Equal columns share the available table width; the root keeps the natural
+  // cell size until its container is narrower. Row rhythm is `border-spacing-y`
   // (margins do not apply to `<tr>`).
   // NOTE: there is no `table` slot in v9 — it was renamed `month_grid`, and a
   // `table:` key is silently dropped.
   const baseClassNames: CalendarClassNames = {
-    root: cn("w-fit max-w-full", defaultClassNames.root),
+    root: cn("w-[calc(7*var(--cell-size)+1.5rem)] max-w-full", defaultClassNames.root),
     months: cn(
       "relative flex min-w-0 flex-col gap-4 md:flex-row",
       defaultClassNames.months
@@ -115,7 +114,7 @@ function Calendar({
     ),
     weekdays: cn(defaultClassNames.weekdays),
     weekday: cn(
-      "text-muted-foreground w-[--cell-size] select-none pb-1 align-bottom text-xs font-normal",
+      "text-muted-foreground w-[calc(100%/7)] select-none pb-1 align-bottom text-xs font-normal",
       defaultClassNames.weekday
     ),
     week: cn(defaultClassNames.week),
@@ -128,7 +127,7 @@ function Calendar({
       defaultClassNames.week_number
     ),
     day: cn(
-      "group/day relative w-[--cell-size] select-none p-0 text-center align-middle [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+      "group/day relative w-[calc(100%/7)] select-none p-0 text-center align-middle [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
       defaultClassNames.day
     ),
     range_start: cn("bg-accent rounded-l-md", defaultClassNames.range_start),
