@@ -44,7 +44,7 @@ it("forwards anonymous public pageviews without private payloads or query tokens
   expect(payload).toMatchObject({ event: "$pageview", distinct_id: "careerpack-public:a123456789abcdef",
     properties: { $current_url: "https://careerpack.org/", $process_person_profile: false, $geoip_disable: true } });
   expect(options.body).not.toMatch(/private|203\.0\.113\.5/);
-  for (const path of ["/dashboard", "/admin", "/login", "/reset-password", "/oauth/authorize"]) {
+  for (const path of ["/dashboard", "/admin", "/login", "/reset-password", "/oauth/authorize", "https://other.example/", "//other.example/", "/\\other.example/"]) {
     await POST(new Request("https://careerpack.org/api/analytics", {
       method: "POST", body: JSON.stringify({ path, eventType: "page_view" }),
     }));

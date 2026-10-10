@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   // Never track the signed-in dashboard, admin panel, or API routes.
   if (
     !path ||
+    !path.startsWith("/") || path.startsWith("//") || path.includes("\\") ||
     path.startsWith("/dashboard") ||
     path.startsWith("/admin") ||
     path.startsWith("/api") ||
