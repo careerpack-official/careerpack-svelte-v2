@@ -46,7 +46,7 @@ export interface MarkedDate {
 // do nothing on an inline-block, which is why nothing upstream could fix it;
 // `block` + `w-fit` keeps the shrink-to-content sizing and lets `mx-auto`
 // actually centre it.
-const wrapperVariants = cva("relative block w-fit mx-auto", {
+const wrapperVariants = cva("relative block w-fit max-w-full mx-auto", {
   variants: {
     variant: {
       default: "bg-background",
@@ -221,6 +221,7 @@ export function UltimateCalendar({
           // `var(--primary)` *if* we override that. Cleaner: target
           // the specific data attrs via Tailwind arbitrary selectors.
           day: cn(
+            "p-0",
             "[&_button[data-selected-single=true]]:!bg-[color:var(--ucal-accent)]",
             "[&_button[data-selected-single=true]]:!text-[color:var(--ucal-accent-fg)]",
             "[&_button[data-range-start=true]]:!bg-[color:var(--ucal-accent)]",

@@ -59,16 +59,15 @@ function Calendar({
   // `weekdays` / `week` / `weekday` are inert on table boxes (`flex-1` in
   // particular did nothing), which left auto table layout to hand the first
   // weekday cell all the slack — the "Sen … Sel Rab Kam" header bug.
-  // Equal columns now come from `w-[--cell-size]` on every header cell plus
-  // `w-full` on the table: at the natural size that is 7 × cell-size, and any
-  // extra width is distributed evenly. Row rhythm is `border-spacing-y`
+  // Equal columns share the available table width; the root keeps the natural
+  // cell size until its container is narrower. Row rhythm is `border-spacing-y`
   // (margins do not apply to `<tr>`).
   // NOTE: there is no `table` slot in v9 — it was renamed `month_grid`, and a
   // `table:` key is silently dropped.
   const baseClassNames: CalendarClassNames = {
-    root: cn("w-fit", defaultClassNames.root),
+    root: cn("w-[calc(7*var(--cell-size)+1.5rem)] max-w-full", defaultClassNames.root),
     months: cn(
-      "relative flex flex-col gap-4 md:flex-row",
+      "relative flex min-w-0 flex-col gap-4 md:flex-row",
       defaultClassNames.months
     ),
     month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
@@ -78,16 +77,16 @@ function Calendar({
     ),
     button_previous: cn(
       buttonVariants({ variant: buttonVariant }),
-      "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+      "h-[44px] w-[44px] select-none p-0 aria-disabled:opacity-50 lg:h-[--cell-size] lg:w-[--cell-size]",
       defaultClassNames.button_previous
     ),
     button_next: cn(
       buttonVariants({ variant: buttonVariant }),
-      "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+      "h-[44px] w-[44px] select-none p-0 aria-disabled:opacity-50 lg:h-[--cell-size] lg:w-[--cell-size]",
       defaultClassNames.button_next
     ),
     month_caption: cn(
-      "flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]",
+      "flex h-[--cell-size] min-h-[44px] w-full items-center justify-center px-[--cell-size] lg:min-h-0",
       defaultClassNames.month_caption
     ),
     dropdowns: cn(
@@ -110,12 +109,12 @@ function Calendar({
       defaultClassNames.caption_label
     ),
     month_grid: cn(
-      "w-full border-separate border-spacing-x-0 border-spacing-y-1",
+      "w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-1",
       defaultClassNames.month_grid
     ),
     weekdays: cn(defaultClassNames.weekdays),
     weekday: cn(
-      "text-muted-foreground w-[--cell-size] select-none pb-1 align-bottom text-xs font-normal",
+      "text-muted-foreground w-[calc(100%/7)] select-none pb-1 align-bottom text-xs font-normal",
       defaultClassNames.weekday
     ),
     week: cn(defaultClassNames.week),
@@ -128,7 +127,7 @@ function Calendar({
       defaultClassNames.week_number
     ),
     day: cn(
-      "group/day relative w-[--cell-size] select-none p-0 text-center align-middle [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+      "group/day relative w-[calc(100%/7)] select-none p-0 text-center align-middle [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
       defaultClassNames.day
     ),
     range_start: cn("bg-accent rounded-l-md", defaultClassNames.range_start),
@@ -242,7 +241,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex h-auto w-full min-w-0 flex-col gap-1 font-normal leading-none lg:h-[--cell-size] lg:w-full data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}
