@@ -76,7 +76,7 @@ export function PreviewDialog({
         drawerClassName="max-h-[95dvh]"
         aria-describedby={undefined}
       >
-        <ResponsiveDialogHeader className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+        <ResponsiveDialogHeader className="flex flex-col gap-3 border-b border-border p-0 pr-12 lg:p-4 lg:pr-14 lg:flex-row lg:items-center lg:justify-between">
           <ResponsiveDialogTitle>Preview halaman publik</ResponsiveDialogTitle>
           <div className="flex flex-wrap items-center gap-2">
             <Tabs

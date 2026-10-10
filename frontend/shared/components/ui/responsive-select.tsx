@@ -37,6 +37,7 @@ type Mode = "select" | "drawer";
 interface SelectCtx {
   mode: Mode;
   value?: string;
+  label?: React.ReactNode;
   onValueChange?: (value: string) => void;
 }
 
@@ -71,6 +72,16 @@ export function ResponsiveSelect({
     defaultValue,
   );
   const currentValue = value !== undefined ? value : internalValue;
+  // Read labels before the portal mounts so closed mobile selects show their label.
+  const findLabel = (nodes: React.ReactNode): React.ReactNode => {
+    for (const node of React.Children.toArray(nodes)) {
+      if (!React.isValidElement<{ value?: string; children?: React.ReactNode }>(node)) continue;
+      if (node.type === ResponsiveSelectItem && node.props.value === currentValue) return node.props.children;
+      const label = findLabel(node.props.children);
+      if (label !== undefined) return label;
+    }
+    return undefined;
+  };
 
   const handleChange = (v: string) => {
     if (value === undefined) setInternalValue(v);
@@ -94,7 +105,7 @@ export function ResponsiveSelect({
     );
   }
   return (
-    <SelectContext.Provider value={{ mode, value: currentValue, onValueChange: handleChange }}>
+    <SelectContext.Provider value={{ mode, value: currentValue, label: findLabel(children), onValueChange: handleChange }}>
       <Drawer open={open} onOpenChange={onOpenChange}>
         {children}
       </Drawer>
@@ -114,8 +125,7 @@ export function ResponsiveSelectTrigger({
   children,
   ...props
 }: ResponsiveSelectTriggerProps) {
-  const { mode, value } = React.useContext(SelectContext);
-  const optionsRef = React.useContext(SelectOptionsContext);
+  const { mode, value, label: selectedLabel } = React.useContext(SelectContext);
 
   if (mode === "select") {
     return (
@@ -125,7 +135,7 @@ export function ResponsiveSelectTrigger({
     );
   }
 
-  const label = value ? optionsRef?.getLabel(value) ?? value : placeholder;
+  const label = value ? selectedLabel ?? value : placeholder;
 
   return (
     <DrawerTrigger asChild>
@@ -133,27 +143,19 @@ export function ResponsiveSelectTrigger({
         type="button"
         data-slot="responsive-select-trigger"
         className={cn(
-          "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm",
+          "flex min-h-[44px] min-w-0 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm",
           "focus:outline-none focus:ring-1 focus:ring-ring",
           !value && "text-muted-foreground",
           className,
         )}
         {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
-        <span className="line-clamp-1 text-left">{label}</span>
-        <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
+        <span className="min-w-0 break-words text-left">{label}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
       </button>
     </DrawerTrigger>
   );
 }
-
-// Track option labels so the mobile Trigger can render the selected label.
-interface OptionsRef {
-  register: (value: string, label: string) => void;
-  unregister: (value: string) => void;
-  getLabel: (value: string) => string | undefined;
-}
-const SelectOptionsContext = React.createContext<OptionsRef | null>(null);
 
 export interface ResponsiveSelectContentProps
   extends React.ComponentProps<typeof SelectContent> {
@@ -169,38 +171,24 @@ export function ResponsiveSelectContent({
   ...props
 }: ResponsiveSelectContentProps) {
   const { mode } = React.useContext(SelectContext);
-  const labelsRef = React.useRef<Map<string, string>>(new Map());
-  const optionsApi = React.useMemo<OptionsRef>(
-    () => ({
-      register: (v, l) => labelsRef.current.set(v, l),
-      unregister: (v) => labelsRef.current.delete(v),
-      getLabel: (v) => labelsRef.current.get(v),
-    }),
-    [],
-  );
-
   if (mode === "select") {
     return (
-      <SelectOptionsContext.Provider value={optionsApi}>
         <SelectContent className={className} {...props}>
           {children}
         </SelectContent>
-      </SelectOptionsContext.Provider>
     );
   }
   return (
-    <SelectOptionsContext.Provider value={optionsApi}>
-      <DrawerContent className={cn("max-h-[85dvh]", drawerClassName)}>
+      <DrawerContent className={cn("mx-auto w-full min-w-0 max-h-[85dvh] sm:max-w-lg", drawerClassName)}>
         <DrawerHeader className={drawerTitle ? "pb-1" : "sr-only"}>
           <DrawerTitle className={drawerTitle ? "" : "sr-only"}>
             {drawerTitle ?? "Pilih opsi"}
           </DrawerTitle>
         </DrawerHeader>
-        <div className="overflow-y-auto px-2 pb-[max(1rem,var(--safe-bottom))]">
+        <div className="min-h-0 min-w-0 overflow-y-auto px-2 pb-[max(1rem,var(--safe-bottom))]">
           {children}
         </div>
       </DrawerContent>
-    </SelectOptionsContext.Provider>
   );
 }
 
@@ -216,18 +204,6 @@ export function ResponsiveSelectItem({
   ...props
 }: ResponsiveSelectItemProps) {
   const { mode, value: selected, onValueChange } = React.useContext(SelectContext);
-  const options = React.useContext(SelectOptionsContext);
-
-  // Register label for the mobile trigger. Extract text from children for the
-  // common case — user can pass plain string; complex children render their
-  // own content in the drawer anyway.
-  React.useEffect(() => {
-    if (!options) return;
-    const label = typeof children === "string" ? children : String(value);
-    options.register(value, label);
-    return () => options.unregister(value);
-  }, [options, value, children]);
-
   if (mode === "select") {
     return (
       <SelectItem value={value} className={className} {...props}>
@@ -244,7 +220,7 @@ export function ResponsiveSelectItem({
         aria-selected={checked}
         onClick={() => onValueChange?.(value)}
         className={cn(
-          "flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm outline-none",
+          "flex min-h-[44px] min-w-0 w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm outline-none",
           "hover:bg-accent focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring",
           className,
         )}
@@ -252,13 +228,13 @@ export function ResponsiveSelectItem({
         <span
           aria-hidden="true"
           className={cn(
-            "flex h-5 w-5 items-center justify-center rounded-full border",
+            "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
             checked ? "border-brand bg-brand text-brand-foreground" : "border-muted-foreground/40",
           )}
         >
           {checked && <Check className="h-3 w-3" />}
         </span>
-        <span className="flex-1">{children}</span>
+        <span className="min-w-0 flex-1 break-words">{children}</span>
       </button>
     </DrawerClose>
   );
