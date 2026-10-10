@@ -35,11 +35,11 @@ export interface TabsListProps extends TabsListBaseProps {
 }
 
 const EQUAL_COLS_CLASS: Record<NonNullable<TabsListProps["cols"]>, string> = {
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-  5: "grid-cols-5",
-  6: "grid-cols-6",
+  2: "grid-cols-[repeat(2,minmax(max-content,1fr))]",
+  3: "grid-cols-[repeat(3,minmax(max-content,1fr))]",
+  4: "grid-cols-[repeat(4,minmax(max-content,1fr))]",
+  5: "grid-cols-[repeat(5,minmax(max-content,1fr))]",
+  6: "grid-cols-[repeat(6,minmax(max-content,1fr))]",
 }
 
 const VARIANT_LIST_CLASS: Record<TabsListVariant, string> = {
@@ -74,9 +74,8 @@ const TabsList = React.forwardRef<
     ref={ref}
     data-variant={variant}
     className={cn(
-      // WCAG 2.5.5 minimum 44×44 on mobile; compact 36px on sm+ for
-      // information-dense desktop layouts.
-      "h-11 sm:h-9",
+      // Pixels keep touch targets usable when the user reduces font scale.
+      "group min-w-0 max-w-full h-auto lg:h-9",
       VARIANT_LIST_CLASS[variant],
       variant === "equal" && cols !== undefined && EQUAL_COLS_CLASS[cols],
       className,
@@ -98,7 +97,7 @@ const TabsTrigger = React.forwardRef<
       // scrolls horizontally instead of squishing the text. The `equal`
       // variant overrides this via grid sizing — but flex-shrink is
       // ignored on grid items, so it's safe as a default for all variants.
-      "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all",
+      "inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all lg:min-h-0 group-data-[variant=pills]:flex-1 group-data-[variant=segmented]:flex-1",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       // Active pill: stronger separation from `bg-muted` container in
@@ -122,7 +121,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "mt-4 w-full min-w-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className
     )}
     {...props}

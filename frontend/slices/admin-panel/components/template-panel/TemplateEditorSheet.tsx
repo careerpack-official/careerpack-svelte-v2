@@ -39,8 +39,8 @@ export function TemplateEditorSheet({
   return (
     <Sheet open={!!draft} onOpenChange={(o) => !o && setDraft(null)}>
       <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col h-full">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-          <div className="flex items-center justify-between gap-2">
+        <SheetHeader className="px-4 pt-6 pb-4 pr-16 sm:px-6 sm:pr-16 border-b shrink-0">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <SheetTitle>{draft?.id ? "Edit Template" : "Buat Template Baru"}</SheetTitle>
             {draft && (
               <div className="flex items-center gap-1">
@@ -95,7 +95,7 @@ export function TemplateEditorSheet({
 
             <ScrollArea className="flex-1 min-h-0">
               <TabsContent value="info" className="px-6 py-4 mt-0">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1 col-span-2">
                     <Label>Judul *</Label>
                     <Input
@@ -227,7 +227,7 @@ export function TemplateEditorSheet({
                   <p className="text-xs text-muted-foreground">
                     Manifest = metadata deklaratif tentang roadmap. Tool eksternal (ekspor, bagikan, embed) dapat membaca info ini. Semua opsional — kosongkan untuk default.
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <Label>Versi</Label>
                       <Input
@@ -289,7 +289,7 @@ export function TemplateEditorSheet({
                   <p className="text-xs text-muted-foreground">
                     Konfigurasi mengontrol perilaku gamifikasi: tema kelas, XP per jam belajar, narasi quest. Semua opsional — biarkan kosong untuk pakai default.
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <Label>XP per Jam</Label>
                       <Input

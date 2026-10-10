@@ -129,7 +129,7 @@ export function AgendaFormDialog({
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="sm:max-w-md">
+      <ResponsiveDialogContent size="md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
             {isEdit ? "Edit Agenda" : "Tambah Agenda"}

@@ -252,16 +252,16 @@ export function ResponsiveDialogContent({
   if (!useStickyLayout) {
     return (
       <DrawerContent
-        className={cn("max-h-[92dvh]", drawerClassName)}
+        className={cn("mx-auto w-full min-w-0 max-h-[92dvh]", SIZE_CLASSES[size], drawerClassName)}
         {...(props as React.ComponentProps<typeof DrawerContent>)}
       >
         <DrawerClose
           aria-label="Tutup"
-          className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="absolute right-2 top-2 z-10 inline-flex h-[44px] w-[44px] items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         >
           <X className="h-4 w-4" />
         </DrawerClose>
-        <div className="flex w-full flex-col gap-4 overflow-y-auto px-4 pb-[max(1rem,var(--safe-bottom))]">
+        <div className="flex w-full min-w-0 min-h-0 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-[max(1rem,var(--safe-bottom))]">
           {children}
         </div>
       </DrawerContent>
@@ -269,12 +269,12 @@ export function ResponsiveDialogContent({
   }
   return (
     <DrawerContent
-      className={cn("flex max-h-[92dvh] flex-col", drawerClassName)}
+      className={cn("mx-auto flex w-full min-w-0 max-h-[92dvh] flex-col", SIZE_CLASSES[size], drawerClassName)}
       {...(props as React.ComponentProps<typeof DrawerContent>)}
     >
       <DrawerClose
         aria-label="Tutup"
-        className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        className="absolute right-2 top-2 z-10 inline-flex h-[44px] w-[44px] items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
       >
         <X className="h-4 w-4" />
       </DrawerClose>
@@ -285,7 +285,7 @@ export function ResponsiveDialogContent({
       )}
       <div
         className={cn(
-          "flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto px-4 py-4",
+          "flex flex-1 min-w-0 min-h-0 flex-col gap-4 overflow-y-auto px-4 py-4",
           bodyClassName,
         )}
       >
@@ -306,7 +306,7 @@ export function ResponsiveDialogHeader({
 }: React.ComponentProps<"div">) {
   const mode = useResponsiveMode();
   const Header = mode === "dialog" ? DialogHeader : DrawerHeader;
-  return <Header className={cn(className)} {...props} />;
+  return <Header className={cn(mode === "drawer" && "p-0 pr-12 text-left", className)} {...props} />;
 }
 
 export function ResponsiveDialogFooter({
@@ -315,7 +315,7 @@ export function ResponsiveDialogFooter({
 }: React.ComponentProps<"div">) {
   const mode = useResponsiveMode();
   const Footer = mode === "dialog" ? DialogFooter : DrawerFooter;
-  return <Footer className={cn(className)} {...props} />;
+  return <Footer className={cn(mode === "drawer" && "m-0 p-0", className)} {...props} />;
 }
 
 export function ResponsiveDialogTitle(

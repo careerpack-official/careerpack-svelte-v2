@@ -76,7 +76,7 @@ const SheetContent = React.forwardRef<
 >(({ side = "right", className, children, stickyHeader, stickyFooter, bodyClassName, hideCloseButton, ...props }, ref) => {
   const useStickyLayout = Boolean(stickyHeader || stickyFooter)
   const closeButton = !hideCloseButton && (
-    <SheetPrimitive.Close aria-label="Tutup" className="absolute right-2 top-2 z-20 inline-flex h-11 w-11 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary sm:right-4 sm:top-4 sm:h-9 sm:w-9">
+    <SheetPrimitive.Close aria-label="Tutup" className="absolute right-2 top-2 z-20 inline-flex h-[44px] w-[44px] items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary lg:right-4 lg:top-4 lg:h-9 lg:w-9">
       <X className="h-4 w-4" />
     </SheetPrimitive.Close>
   )

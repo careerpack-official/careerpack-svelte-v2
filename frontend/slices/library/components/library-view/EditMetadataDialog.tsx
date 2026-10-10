@@ -56,7 +56,7 @@ export function EditMetadataDialog({ file, onClose, onSave }: Props) {
 
   return (
     <ResponsiveDialog open={!!file} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <ResponsiveDialogContent className="sm:max-w-md">
+      <ResponsiveDialogContent size="md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Edit metadata</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>

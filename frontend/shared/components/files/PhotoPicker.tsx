@@ -225,7 +225,7 @@ export function PhotoPicker({
 
       {/* Upload dialog (drawer on mobile via ResponsiveDialog) */}
       <ResponsiveDialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <ResponsiveDialogContent className="sm:max-w-lg">
+        <ResponsiveDialogContent size="lg">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Unggah Foto</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
