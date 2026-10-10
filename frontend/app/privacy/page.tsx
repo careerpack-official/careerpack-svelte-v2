@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "18 September 2026";
+const LAST_UPDATED = "10 Oktober 2026";
 
 export default function PrivacyPage() {
   return (
@@ -98,7 +98,9 @@ export default function PrivacyPage() {
           memiliki analitik internal yang dapat mencatat path halaman, host perujuk, UTM,
           ukuran layar, dan negara. Negara dapat diturunkan dari alamat IP saat request
           diproses; alamat IP mentah tidak disimpan sebagai data analitik. Analitik tidak
-          dijalankan pada dashboard dan admin.
+          dijalankan pada dashboard dan admin. Kunjungan halaman publik juga dikirim
+          ke PostHog sebagai event anonim tanpa cookie tambahan, profil pengguna,
+          rekaman sesi, isi CV, email, atau alamat IP pengunjung.
         </p>
 
         <h2>Yang Tidak Kami Lakukan</h2>
