@@ -30,21 +30,21 @@ export function SectionCard({ title, icon: Icon, children, isOpen, onToggle, onA
   return (
     <Card className="border-border overflow-hidden">
       <CardHeader className="bg-muted/50">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           {/* The big target: clicking the title still expands, as before. */}
           <button
             type="button"
             onClick={onToggle}
             aria-expanded={isOpen}
             aria-controls={contentId}
-            className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`flex min-h-[44px] min-w-0 flex-1 items-center gap-3 rounded-md text-left transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-h-0 ${onAdd ? "basis-full sm:basis-0" : ""}`}
           >
             <div className="w-10 h-10 rounded-lg bg-brand-muted flex items-center justify-center shrink-0">
               <Icon className="w-5 h-5 text-brand" />
             </div>
-            <CardTitle className="text-lg truncate">{title}</CardTitle>
+            <CardTitle className="min-w-0 break-words text-lg">{title}</CardTitle>
           </button>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className={`flex shrink-0 items-center gap-2 ${onAdd ? "w-full justify-end sm:w-auto" : ""}`}>
             {onAdd && (
               <Button
                 variant="ghost"
@@ -56,17 +56,14 @@ export function SectionCard({ title, icon: Icon, children, isOpen, onToggle, onA
                 {addLabel}
               </Button>
             )}
-            {/* Second toggle rather than a decorative chevron: it is what most
-                people aim at, and as a sibling of the add button it nests
-                nothing. h-8/w-8 — `--font-scale` 0.92 shrinks the rem base, so
-                a nominal-24px h-6 would render at 22px. */}
+            {/* Keep the chevron separate from the add action and large enough for touch. */}
             <button
               type="button"
               onClick={onToggle}
               aria-expanded={isOpen}
               aria-controls={contentId}
               aria-label={`${isOpen ? "Tutup" : "Buka"} bagian ${title}`}
-              className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="grid h-[44px] w-[44px] place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:h-8 lg:w-8"
             >
               {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>

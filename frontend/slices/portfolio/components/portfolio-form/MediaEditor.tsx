@@ -65,7 +65,7 @@ export function MediaEditor({ media, onChange }: Props) {
           type="button"
           variant="outline"
           onClick={() => setPickerOpen(true)}
-          className="h-full min-h-[120px] flex-col gap-2"
+          className="h-full min-h-[120px] flex-col gap-2 lg:h-full lg:min-h-[120px]"
         >
           <Upload className="h-5 w-5" />
           <span className="text-sm">Pilih dari Pustaka Konten</span>
