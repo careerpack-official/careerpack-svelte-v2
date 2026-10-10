@@ -38,6 +38,20 @@ the live deployment used authorized local credentials instead.
 The temporary migration key expires after 24 hours; it does not affect deployed
 application operation, but cannot support later deployments or backups.
 
+Add permanent credentials at repository **Settings > Secrets and variables >
+Actions > New repository secret**. Store the main-v2 production deployment key
+as `CONVEX_DEPLOY_KEY` and the dedicated Cloudflare account's scoped deployment
+token as `CLOUDFLARE_API_TOKEN`. These are Actions secrets, not public variables.
+The Cloudflare account ID is already pinned in the workflow; Google OAuth secrets
+stay in Convex, and the PostHog ingestion token stays in Worker secret storage.
+
+As checked after migration, Actions is enabled, repository secrets are empty,
+and the deployment workflows use `workflow_dispatch` only. Changing `main` does
+not automatically deploy through GitHub Actions. After adding permanent keys,
+run the workflows manually and verify their results before enabling push-based
+deployment. An existing `production` environment can also hold the secrets;
+repository secrets work with the current workflow's environment declaration.
+
 PostHog receives anonymous public pageviews only, without account IDs, raw IPs,
 query strings, arbitrary properties, session replay or additional browser cookies.
 An anonymous test pageview sent through the live site's analytics route was
