@@ -33,10 +33,14 @@ and includes file storage. The legacy self-hosted target requires an explicit
 `PROD_ENV_FILE` override. Smoke checks do not trigger Dokploy by default.
 
 Manual deployment workflows require GitHub Actions secrets `CONVEX_DEPLOY_KEY`
-and `CLOUDFLARE_API_TOKEN`. These durable credentials still need to be installed;
-the live deployment used authorized local credentials instead.
-The temporary migration key expires after 24 hours; it does not affect deployed
-application operation, but cannot support later deployments or backups.
+and `CLOUDFLARE_API_TOKEN`. Both repository secrets were installed on 2026-10-10.
+The [Convex deployment](https://github.com/careerpack-official/careerpack-svelte-v2/actions/runs/38052102224)
+and [Cloudflare deployment](https://github.com/careerpack-official/careerpack-svelte-v2/actions/runs/38052511392)
+completed successfully through GitHub Actions. Convex's `new-composio` key was
+recorded as used. Worker version `c5079068-d382-4ecf-acae-f3f0e915b331` serves 100%
+of traffic, with build ID `dff5e73faff235a2389fcc861cb2fe1108342e35`.
+The temporary migration key in the local CLI env file remains separate from
+GitHub secrets; replace it before later local deployments or backups.
 
 Add permanent credentials at repository **Settings > Secrets and variables >
 Actions > New repository secret**. Store the main-v2 production deployment key
@@ -45,11 +49,10 @@ token as `CLOUDFLARE_API_TOKEN`. These are Actions secrets, not public variables
 The Cloudflare account ID is already pinned in the workflow; Google OAuth secrets
 stay in Convex, and the PostHog ingestion token stays in Worker secret storage.
 
-As checked after migration, Actions is enabled, repository secrets are empty,
-and the deployment workflows use `workflow_dispatch` only. Changing `main` does
-not automatically deploy through GitHub Actions. After adding permanent keys,
-run the workflows manually and verify their results before enabling push-based
-deployment. An existing `production` environment can also hold the secrets;
+Actions is enabled and both repository secrets are present. The deployment
+workflows still use `workflow_dispatch` only, and the Worker has no native
+Cloudflare build trigger. Changing `main` does not automatically deploy.
+An existing `production` environment can also hold the secrets;
 repository secrets work with the current workflow's environment declaration.
 
 PostHog receives anonymous public pageviews only, without account IDs, raw IPs,
@@ -62,3 +65,8 @@ Validation: frontend/backend type checks, lint, 794 passing tests (one skipped),
 Linux OpenNext production build, live health checks, Google login, MCP discovery,
 anonymous PostHog capture, and exact backup comparison. New file uploads,
 password-reset mail and third-party MCP authorization were not exercised.
+GitHub Actions also passed type checks, lint, coverage tests and the production
+build. The OpenGraph image lint configuration is explicitly scoped to native
+ImageResponse image routes so that it works consistently on Windows and Linux.
+Live frontend/backend health, deployed build ID, and retained PostHog Worker
+secret metadata were verified after publication.
