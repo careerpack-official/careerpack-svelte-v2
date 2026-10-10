@@ -11,9 +11,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <ResponsiveContainer>
           {/* Renders only in anonymous/demo sessions. Real users
               never see it. Pinned above every dashboard page. */}
-          <div className="px-4 pt-4 md:px-6">
-            <DemoBanner />
-          </div>
+          <DemoBanner />
           {children}
         </ResponsiveContainer>
       </ErrorBoundary>

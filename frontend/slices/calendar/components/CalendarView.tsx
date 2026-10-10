@@ -199,7 +199,7 @@ export function CalendarView() {
   }, [todayKey, selectDateKey]);
 
   return (
-    <PageContainer size="xl" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Kalender Karir"
         description="Wawancara, tenggat lamaran, dan follow-up Anda"

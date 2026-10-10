@@ -98,7 +98,7 @@ export function NetworkingView() {
   );
 
   return (
-    <PageContainer size="lg" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Jaringan"
         description="Kelola kontak profesional, mentor, dan rekruter."

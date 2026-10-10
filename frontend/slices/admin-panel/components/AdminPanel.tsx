@@ -146,7 +146,7 @@ export function AdminPanel() {
   if (amIAdmin !== true || amISuperAdmin === undefined) return <LoadingScreen />;
 
   return (
-    <PageContainer size="xl" className="min-w-0 space-y-6 overflow-x-hidden">
+    <PageContainer className="min-w-0 space-y-6 overflow-x-hidden">
       <ResponsivePageHeader
         title={
           <span className="inline-flex items-center gap-2">
@@ -492,4 +492,3 @@ function TopList({ icon: Icon, title, description, items, emptyLabel }: TopListP
     </Card>
   );
 }
-

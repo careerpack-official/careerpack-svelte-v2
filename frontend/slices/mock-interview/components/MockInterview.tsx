@@ -23,7 +23,7 @@ export function MockInterview() {
   }
 
   return (
-    <PageContainer size="lg">
+    <PageContainer>
       <ResponsivePageHeader
         title="Simulasi Wawancara"
         description={

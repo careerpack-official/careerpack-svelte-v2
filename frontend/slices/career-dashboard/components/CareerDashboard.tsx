@@ -102,7 +102,7 @@ export function CareerDashboard() {
   );
 
   return (
-    <PageContainer size="xl" className="flex flex-col gap-6">
+    <PageContainer className="flex flex-col gap-6">
       <ResponsivePageHeader
         title="Lamaran"
         description="Pantau semua lamaran yang sudah Anda kirim."

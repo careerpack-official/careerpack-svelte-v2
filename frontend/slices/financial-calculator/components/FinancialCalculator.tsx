@@ -21,7 +21,7 @@ export function FinancialCalculator() {
     // xl (max-w-7xl), not lg: every tab is now a two-column
     // inputs | results split, and at 6xl the results rail squeezed the
     // sliders and the donut into ~340px.
-    <PageContainer size="xl">
+    <PageContainer>
       <ResponsivePageHeader
         title="Kalkulator Keuangan"
         description="Rencanakan keuangan Anda dan bandingkan biaya hidup antar kota"

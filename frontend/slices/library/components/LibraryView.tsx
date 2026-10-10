@@ -86,7 +86,7 @@ export function LibraryView() {
   }, [files]);
 
   return (
-    <PageContainer size="lg" className="space-y-6">
+    <PageContainer className="space-y-6">
       <ResponsivePageHeader
         title="Pustaka Konten"
         description="Pusat media: semua gambar dan dokumen yang kamu unggah, siap dipakai ulang di portfolio, CV, dan personal branding."
