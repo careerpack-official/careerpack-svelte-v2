@@ -20,6 +20,7 @@ export const ROUTES = {
     resetPassword: (token: string) => `/reset-password/${token}`,
   },
   dashboard: {
+    workspaces: "/dashboard/workspaces",
     home: "/dashboard",
     // Sub-paths resolved by DASHBOARD_VIEWS registry — keep in sync
     // with shared/lib/dashboardRoutes.tsx.
@@ -81,8 +82,12 @@ export function isMarketingRoute(pathname: string): boolean {
 export function postLoginTarget(redirectParam?: string | null): string {
   if (!redirectParam) return ROUTES.dashboard.home;
   // Only allow in-app targets; reject absolute URLs (prevents open-redirect).
-  if (!redirectParam.startsWith("/") || redirectParam.startsWith("//")) {
+  if (!redirectParam.startsWith("/") || redirectParam.startsWith("//") || redirectParam.includes("\\") || [...redirectParam].some(c => c.charCodeAt(0) < 32)) {
     return ROUTES.dashboard.home;
   }
   return redirectParam;
+}
+
+export function loginRedirect(returnTo: string): string {
+  return `${ROUTES.auth.login}?redirect=${encodeURIComponent(postLoginTarget(returnTo))}`;
 }

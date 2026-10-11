@@ -14,12 +14,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { convexHttpUrl } from '@/shared/lib/env';
+import { postLoginTarget } from '@/shared/lib/routes';
 import { isAuthReadinessKnown, isGoogleAuthReady, type AuthReadiness } from '../lib/authReadiness';
 
 export function LoginPage() {
     const router = useRouter();
     const { login, register, loginAsDemo } = useAuth();
     const { signIn } = useAuthActions();
+    const destination = () => postLoginTarget(new URLSearchParams(window.location.search).get("redirect"));
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -115,7 +117,7 @@ export function LoginPage() {
                         duration: 2500,
                     },
                 );
-                router.push('/dashboard');
+                router.push(destination());
             } else {
                 // login() is login-OR-register: a brand-new email typed into
                 // "Masuk" goes to account CREATION, and the server rejects a
@@ -174,7 +176,7 @@ export function LoginPage() {
                     description: 'Akun aktif. Email sambutan dikirim — kalau tidak masuk inbox, cek folder Spam.',
                     duration: 5500,
                 });
-                router.push('/dashboard');
+                router.push(destination());
             } else {
                 showError(result.error);
             }
@@ -199,7 +201,7 @@ export function LoginPage() {
         }
         setIsGoogleLoading(true);
         try {
-            await signIn("google");
+            await signIn("google", { redirectTo: destination() });
             // signIn redirects to Google — control returns only on failure.
         } catch (err) {
             showError(err instanceof Error ? err.message : 'Google sign-in gagal');

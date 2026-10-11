@@ -7,6 +7,7 @@ import { handleCheckEmail, handleSignInAttempt } from "./authCheckEmail";
 import { handleHealth } from "./health";
 import { handleMcp } from "./mcp/http";
 import { handleSignedFileRead } from "./mcp/fileRead";
+import { readFile as readWorkspaceFile } from "./workspaces/fileRead";
 import { handleRegister } from "./mcp/register";
 import {
   authorizationServerMetadata,
@@ -15,6 +16,7 @@ import {
 } from "./mcp/wellKnown";
 
 const http = httpRouter();
+http.route({ path: "/workspaces/files/read", method: "GET", handler: readWorkspaceFile });
 http.route({ path: "/files/upload", method: "POST", handler: handleUpload });
 http.route({ path: "/files/upload", method: "OPTIONS", handler: handleUpload });
 

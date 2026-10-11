@@ -74,6 +74,8 @@ crons.daily(
   internal.admin.cleanup.pruneAppendOnlyTables,
 );
 
+crons.hourly("prune-workspace-tickets-and-notifications", { minuteUTC: 45 }, internal.workspaces.cleanup.prune, {});
+
 // Daily engine outcome calibrator — Bayesian posterior update of
 // careerEdges from outcomeEvents reports (Phase 4.5). 20:00 UTC =
 // 03:00 WIB. Idempotent: re-running upserts the same nodeOutcomeStats

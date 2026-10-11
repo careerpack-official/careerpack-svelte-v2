@@ -15,8 +15,10 @@
 
 import type { MutationCtx } from "../../_generated/server";
 import type { Id } from "../../_generated/dataModel";
+import { eraseWorkspaceAccount } from "../../workspaces/cleanup";
 
 export async function cascadeDeleteUser(ctx: MutationCtx, userId: Id<"users">) {
+  await eraseWorkspaceAccount(ctx, userId);
   const owned = [
     "userProfiles",
     "jobApplications",

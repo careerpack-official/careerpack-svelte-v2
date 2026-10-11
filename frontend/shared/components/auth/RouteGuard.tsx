@@ -6,7 +6,7 @@ import { useAuth } from "@/shared/hooks/useAuth";
 import { LoadingScreen } from "@/shared/components/feedback/LoadingScreen";
 import type { AuthState } from "@/shared/types/auth";
 import type { UserRole } from "@/shared/types/common";
-import { ROUTES } from "@/shared/lib/routes";
+import { ROUTES, loginRedirect, postLoginTarget } from "@/shared/lib/routes";
 
 /** Grace window before bouncing an "auth"/"role" route to /login on a
  *  Convex auth drop — a flaky connection (VPN, bad Wi-Fi) makes Convex's
@@ -102,7 +102,7 @@ export function RouteGuard({
 
     // "guest" mode (e.g. /login) has nothing to preserve — bounce right away.
     if (mode === "guest") {
-      router.replace(r.target);
+      router.replace(redirectTo ?? postLoginTarget(new URLSearchParams(window.location.search).get("redirect")));
       return;
     }
 
@@ -110,7 +110,9 @@ export function RouteGuard({
     // REAUTH_GRACE_MS and re-check, so a transient reconnect can self-heal.
     const timer = setTimeout(() => {
       const recheck = evaluate(stateRef.current, mode, requiredRole, redirectTo);
-      if (recheck && !recheck.pass) router.replace(recheck.target);
+      if (recheck && !recheck.pass) router.replace(recheck.target === ROUTES.auth.login
+        ? loginRedirect(window.location.pathname + window.location.search)
+        : recheck.target);
     }, REAUTH_GRACE_MS);
     return () => clearTimeout(timer);
     // `state` is excluded — we depend on its primitive fields below.
