@@ -27,6 +27,7 @@ const recordSummary = v.object({
   parentId: v.optional(v.id("workspaceRecords")),
   programId: v.optional(v.id("workspacePrograms")),
   submissionId: v.optional(v.id("workspaceSubmissions")),
+  participant: v.optional(v.string()),
   archivedAt: v.optional(v.number()),
 });
 function resourceFor(w: Doc<"workspaces">, key: string) {
@@ -69,6 +70,7 @@ export const list = query({
       .take(LIMIT);
     const result = [];
     for (const row of rows) {
+      let participant: string | undefined;
       if (args.archived ? !row.archivedAt : !(await visible(ctx, row)))
         continue;
       if (row.submissionId) {
@@ -80,6 +82,8 @@ export const list = query({
           (!reviewer && shared.userId !== userId)
         )
           continue;
+        participant =
+          (await ctx.db.get(shared.userId))?.name ?? "Peserta Careerpack";
       }
       if (
         workspace.sector === "hr" &&
@@ -97,6 +101,7 @@ export const list = query({
         ...(row.parentId ? { parentId: row.parentId } : {}),
         ...(row.programId ? { programId: row.programId } : {}),
         ...(row.submissionId ? { submissionId: row.submissionId } : {}),
+        ...(participant ? { participant } : {}),
         ...(row.archivedAt ? { archivedAt: row.archivedAt } : {}),
       });
     }

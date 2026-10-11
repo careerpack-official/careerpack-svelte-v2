@@ -55,7 +55,7 @@ export function OperationsOverview({ workspace }: { workspace: Scope }) {
           </Link>
         ))}
       </div>
-      {workspace.sector === "hr" && (
+      {workspace.sector === "hr" && workspace.role !== "member" && (
         <Button asChild variant="outline">
           <Link href={workspaceHref(workspace._id, "review")}>
             Tinjau kiriman peserta Careerpack
@@ -80,6 +80,12 @@ export function OperationsPanel({
     resource: spec.key,
     archived,
   });
+  const parents = useQuery(
+    api.workspaces.records.list,
+    spec.parent
+      ? { workspaceId: workspace._id, resource: spec.parent }
+      : "skip",
+  );
   const toggle = useMutation(api.workspaces.records.setArchived);
   const [busy, setBusy] = useState(false);
   return (
@@ -122,6 +128,28 @@ export function OperationsPanel({
                   {row.status}
                 </span>
               </div>
+              {row.parentId && spec.parent && (
+                <p className="text-sm text-muted-foreground">
+                  <Link
+                    className="break-words underline underline-offset-4"
+                    href={workspaceHref(workspace._id, spec.parent)}
+                  >
+                    {spec.parent === "clients"
+                      ? "Klien"
+                      : spec.parent === "projects"
+                        ? "Proyek"
+                        : "Lowongan"}
+                    :{" "}
+                    {parents?.find((p) => p._id === row.parentId)?.title ??
+                      "Data terkait"}
+                  </Link>
+                </p>
+              )}
+              {row.participant && (
+                <p className="break-words text-sm text-muted-foreground">
+                  Peserta: {row.participant}
+                </p>
+              )}
               {spec.fields.map(
                 (field) =>
                   row.values[field.key] && (
@@ -272,7 +300,7 @@ function RecordForm({
             {row ? "Edit" : "Tambah"} {spec.singular.toLowerCase()}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {workspace.name} Ã‚· {spec.description}
+            {workspace.name} · {spec.description}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
@@ -409,6 +437,15 @@ function RecordForm({
                   step={field.type === "number" ? 1 : undefined}
                   maxLength={500}
                   value={values[field.key] ?? ""}
+                  onInput={
+                    field.type === "date"
+                      ? (e) =>
+                          setValues({
+                            ...values,
+                            [field.key]: e.currentTarget.value,
+                          })
+                      : undefined
+                  }
                   onChange={(e) =>
                     setValues({ ...values, [field.key]: e.target.value })
                   }

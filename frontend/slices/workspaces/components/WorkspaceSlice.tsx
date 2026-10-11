@@ -88,6 +88,13 @@ function WorkspaceHub() {
   const resource = selected
     ? resourcesFor(selected.kind, selected.sector).find((r) => r.key === view)
     : undefined;
+  const contentProps = operational
+    ? {
+        role: "region" as const,
+        "aria-labelledby": undefined,
+        "aria-label": active?.label ?? "Workspace",
+      }
+    : {};
   const relevantNotices =
     notices?.filter((n) => !selected || n.workspaceId === selected._id) ?? [];
   function selectWorkspace(
@@ -310,7 +317,11 @@ function WorkspaceHub() {
               onOpen={async (n) => {
                 try {
                   await read({ id: n._id });
-                  selectWorkspace(n.workspaceId, n.programId, n.targetView ?? "programs");
+                  selectWorkspace(
+                    n.workspaceId,
+                    n.programId,
+                    n.targetView ?? "programs",
+                  );
                 } catch (e) {
                   notify.fromError(e, "Gagal membuka notifikasi");
                 }
@@ -364,7 +375,11 @@ function WorkspaceHub() {
                 <TabsTrigger value="preferences">Pengaturan</TabsTrigger>
               </TabsList>
             )}
-            <TabsContent value="overview" className="space-y-4">
+            <TabsContent
+              {...contentProps}
+              value="overview"
+              className="space-y-4"
+            >
               {operational ? (
                 <OperationsOverview workspace={selected} />
               ) : (
@@ -411,7 +426,7 @@ function WorkspaceHub() {
               )}
             </TabsContent>
             {resource && (
-              <TabsContent value={view}>
+              <TabsContent {...contentProps} value={view}>
                 <OperationsPanel
                   key={`${selected._id}:${view}`}
                   workspace={selected}
@@ -419,7 +434,7 @@ function WorkspaceHub() {
                 />
               </TabsContent>
             )}
-            <TabsContent value="pricing">
+            <TabsContent {...contentProps} value="pricing">
               <WorkspaceSettings
                 key={selected._id}
                 workspace={selected}
@@ -428,6 +443,7 @@ function WorkspaceHub() {
             </TabsContent>
             {!resource && view !== "pricing" && (
               <TabsContent
+                {...contentProps}
                 value={
                   [
                     "overview",
@@ -512,7 +528,7 @@ function WorkspaceHub() {
               </TabsContent>
             )}
             {manager && (
-              <TabsContent value="members">
+              <TabsContent {...contentProps} value="members">
                 <MembersPanel
                   workspace={data.workspace}
                   members={data.members}
@@ -521,20 +537,24 @@ function WorkspaceHub() {
                 />
               </TabsContent>
             )}
-            <TabsContent value="notifications">
+            <TabsContent {...contentProps} value="notifications">
               <NoticeList
                 notices={relevantNotices}
                 onOpen={async (n) => {
                   try {
                     await read({ id: n._id });
-                    selectWorkspace(n.workspaceId, n.programId, n.targetView ?? "programs");
+                    selectWorkspace(
+                      n.workspaceId,
+                      n.programId,
+                      n.targetView ?? "programs",
+                    );
                   } catch (e) {
                     notify.fromError(e, "Gagal membuka notifikasi");
                   }
                 }}
               />
             </TabsContent>
-            <TabsContent value="preferences">
+            <TabsContent {...contentProps} value="preferences">
               <WorkspaceSettings
                 key={selected._id}
                 workspace={selected}
