@@ -20,9 +20,11 @@ import {
   Globe,
   Database,
   Library,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 import { PageSkeleton } from "@/shared/components/feedback/PageSkeleton";
+import { IS_HR_PILOT } from "./productMode";
 
 /**
  * SINGLE source of truth for dashboard routing + navigation.
@@ -49,6 +51,10 @@ import { PageSkeleton } from "@/shared/components/feedback/PageSkeleton";
 type View = ComponentType;
 
 const loadingFallback = () => createElement(PageSkeleton);
+const WORKSPACES: View = dynamic(
+  () => import("@/slices/workspaces").then((m) => m.WorkspaceSlice),
+  { loading: loadingFallback }
+);
 
 const HOME: View = dynamic(
   () => import("@/slices/dashboard-home").then((m) => m.DashboardHome),
@@ -126,6 +132,7 @@ const DATABASE: View = dynamic(
 // --- Nav type surface (kept identical to the old navConfig.ts) ---
 export type PrimaryNavId = "home" | "cv" | "calendar" | "more";
 export type MoreAppId =
+  | "workspaces"
   | "roadmap"
   | "checklist"
   | "applications"
@@ -196,7 +203,7 @@ function hrefForSlug(slug: string): string {
  * nav item.
  */
 const REGISTRY: readonly RegistryEntry[] = [
-  { slug: "", view: HOME, nav: { placement: "primary", id: "home", label: "Dashboard", icon: Home } },
+  { slug: "", view: IS_HR_PILOT ? WORKSPACES : HOME, nav: { placement: "primary", id: "home", label: "Dashboard", icon: Home } },
   { slug: "cv", view: CV, nav: { placement: "primary", id: "cv", label: "CV", icon: FileUser } },
   { slug: "calendar", view: CALENDAR, nav: { placement: "primary", id: "calendar", label: "Kalender", icon: Calendar } },
   { slug: "applications", view: APPLICATIONS, nav: { placement: "more", id: "applications", label: "Lamaran", icon: Briefcase, hue: "from-violet-400 to-violet-600" } },
@@ -209,6 +216,7 @@ const REGISTRY: readonly RegistryEntry[] = [
   { slug: "portfolio", view: PORTFOLIO, nav: { placement: "more", id: "portfolio", label: "Portofolio", icon: Folder, hue: "from-orange-400 to-orange-600" } },
   { slug: "library", view: LIBRARY, nav: { placement: "more", id: "library", label: "Pustaka Konten", icon: Library, hue: "from-lime-400 to-lime-600" } },
   { slug: "personal-branding", view: PERSONAL_BRANDING, nav: { placement: "more", id: "personal-branding", label: "Personal Branding", icon: Globe, hue: "from-fuchsia-400 to-fuchsia-600", badge: "AI" } },
+  { slug: "workspaces", view: WORKSPACES, nav: { placement: "more", id: "workspaces", label: "Workspace", icon: Building2, hue: "from-sky-400 to-sky-600", badge: "Pilot" } },
   // Label deliberately ≠ slug: "Database" is our table name, not a word a job
   // seeker navigates by — the page is just their own data in bulk-edit form.
   { slug: "database", view: DATABASE, nav: { placement: "more", id: "database", label: "Data Saya", icon: Database, hue: "from-indigo-400 to-indigo-600" } },

@@ -73,6 +73,15 @@ export const listMyFiles = query({
       .first();
     addUsage(profile?.avatarStorageId, "Foto profil");
 
+    // Only this user's explicitly shared entries; never enumerate another workspace's files.
+    const submissions = await ctx.db.query("workspaceSubmissions").withIndex("by_user", q => q.eq("userId", userId)).take(400);
+    for (const submission of submissions) {
+      for (const entry of submission.entries) {
+        const file = entry.fileId ? rows.find(r => r._id === entry.fileId) : undefined;
+        if (file) addUsage(file.storageId, "Kiriman workspace");
+      }
+    }
+
     const enriched = await Promise.all(
       rows.map(async (r) => ({
         ...r,

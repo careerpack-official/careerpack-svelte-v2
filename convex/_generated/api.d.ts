@@ -219,6 +219,13 @@ import type * as roadmap_saved from "../roadmap/saved.js";
 import type * as roadmap_templates from "../roadmap/templates.js";
 import type * as router from "../router.js";
 import type * as seed from "../seed.js";
+import type * as workspaces_cleanup from "../workspaces/cleanup.js";
+import type * as workspaces_email from "../workspaces/email.js";
+import type * as workspaces_emailVerification from "../workspaces/emailVerification.js";
+import type * as workspaces_fileRead from "../workspaces/fileRead.js";
+import type * as workspaces_lib from "../workspaces/lib.js";
+import type * as workspaces_mutations from "../workspaces/mutations.js";
+import type * as workspaces_queries from "../workspaces/queries.js";
 
 import type {
   ApiFromModules,
@@ -438,6 +445,13 @@ declare const fullApi: ApiFromModules<{
   "roadmap/templates": typeof roadmap_templates;
   router: typeof router;
   seed: typeof seed;
+  "workspaces/cleanup": typeof workspaces_cleanup;
+  "workspaces/email": typeof workspaces_email;
+  "workspaces/emailVerification": typeof workspaces_emailVerification;
+  "workspaces/fileRead": typeof workspaces_fileRead;
+  "workspaces/lib": typeof workspaces_lib;
+  "workspaces/mutations": typeof workspaces_mutations;
+  "workspaces/queries": typeof workspaces_queries;
 }>;
 
 /**

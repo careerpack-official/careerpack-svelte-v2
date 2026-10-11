@@ -46,6 +46,7 @@ export default defineConfig({
         "convex/profile/**/*.ts",
         "convex/engine/**/*.ts",
         "convex/calendar/**/*.ts",
+        "convex/workspaces/**/*.ts",
         "frontend/shared/**/*.{ts,tsx}",
         "frontend/slices/personal-branding/**/*.{ts,tsx}",
         "frontend/slices/skill-roadmap/**/*.{ts,tsx}",

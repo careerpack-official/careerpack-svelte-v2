@@ -26,6 +26,7 @@ import { outcomesTables } from "./engine/outcomes/schema";
 import { planTables } from "./engine/plan/schema";
 import { pageviewTables } from "./pageviews/schema";
 import { mcpTables } from "./mcp/schema";
+import { workspaceTables } from "./workspaces/schema";
 
 // Auth-adjacent table — kept inline here so it lives next to the
 // passwordReset.ts module which owns the writes. (passwordReset.ts is
@@ -76,6 +77,7 @@ const passwordResetTables = {
 };
 
 export default defineSchema({
+  ...workspaceTables,
   ...authTables,
   ...profileTables,
   ...applicationsTables,
