@@ -37,6 +37,9 @@ export function DashboardFooter({ className }: DashboardFooterProps) {
           aria-label="Navigasi footer"
           className="flex items-center gap-4"
         >
+          <Link href="/dukung" className="hover:text-foreground transition-colors">
+            Dukung CareerPack
+          </Link>
           <Link
             href="/dashboard/help"
             className="hover:text-foreground transition-colors"

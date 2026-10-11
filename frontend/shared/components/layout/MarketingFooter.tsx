@@ -38,6 +38,7 @@ export function MarketingFooter() {
                 auth guard. The constants already existed; they were just
                 unreachable from the public side. */}
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/dukung" className="inline-block py-1 hover:text-foreground">Dukung CareerPack &amp; institusi</Link></li>
               <li>
                 <a href="mailto:support@careerpack.org" className="inline-block py-1 hover:text-foreground">
                   support@careerpack.org
