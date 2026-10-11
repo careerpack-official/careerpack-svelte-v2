@@ -1,5 +1,5 @@
 import { mutation, internalMutation } from "../_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser, requireAdmin } from "../_shared/auth";
 import { AI_PROVIDERS, assertTrustedAIBaseUrl } from "../_shared/aiProviders";
 import { maybeEncryptCred } from "../_shared/aiCrypto";
@@ -36,6 +36,10 @@ export const setMyAISettings = mutation({
       .query("aiSettings")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
+
+    if (!rawKey && existing && existing.provider !== args.provider) {
+      throw new ConvexError({ message: "Provider berubah. Sambungkan akun atau isi API key provider yang baru." });
+    }
 
     // New keys get encrypted; an untouched `existing.apiKey` is copied through
     // byte-for-byte. That is what keeps this from being a migration — a row
@@ -115,6 +119,9 @@ export const setGlobalAISettings = mutation({
     if (baseUrl) assertTrustedAIBaseUrl(baseUrl);
 
     const existing = await ctx.db.query("globalAISettings").first();
+    if (!rawKey && existing && existing.provider !== args.provider) {
+      throw new ConvexError({ message: "Provider berubah. Sambungkan akun atau isi API key provider yang baru." });
+    }
     // Same both-formats rule as `setMyAISettings`. Critically, leaving the key
     // field blank must NOT re-encrypt the live plaintext global key: rewriting
     // it takes every AI feature down at once if AI_CRED_SECRET is wrong.

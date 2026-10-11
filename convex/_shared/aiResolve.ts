@@ -45,9 +45,10 @@ export async function resolveAI(
   ctx: ActionCtx,
   fallbackModel: string,
   userIdOverride?: Id<"users">,
+  scope: "user" | "global" = "user",
 ): Promise<ResolvedAI | null> {
   const userId = userIdOverride ?? (await getAuthUserId(ctx).catch(() => null));
-  if (userId) {
+  if (userId && scope === "user") {
     const cfg = await ctx.runQuery(internal.ai.queries._getAISettingsForUser, { userId });
     if (cfg) {
       return {
@@ -63,7 +64,7 @@ export async function resolveAI(
     // Admin per-user model override: same provider/key, different model.
     // Lets admin route premium users to a beefier model on the shared key.
     let model = global.model;
-    if (userId) {
+    if (userId && scope === "user") {
       const override = await ctx.runQuery(internal.ai.queries._getUserModelOverride, { userId });
       if (override) model = override;
     }
@@ -74,6 +75,7 @@ export async function resolveAI(
       source: "global",
     };
   }
+  if (scope === "global") return null;
   const baseUrl = optionalEnv("CONVEX_OPENAI_BASE_URL");
   const apiKey = optionalEnv("CONVEX_OPENAI_API_KEY");
   if (!baseUrl || !apiKey) return null;

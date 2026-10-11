@@ -74,6 +74,8 @@ export const aiTables = {
     userId: v.id("users"),
     provider: v.string(),
     verifier: v.string(),
+    state: v.optional(v.string()),
+    scope: v.optional(v.union(v.literal("user"), v.literal("global"))),
     createdAt: v.number(),
   }).index("by_user_provider", ["userId", "provider"]),
 

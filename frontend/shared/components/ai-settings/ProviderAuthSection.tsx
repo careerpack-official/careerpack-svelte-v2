@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useMutation } from "convex/react";
 import { CheckCircle2, TriangleAlert } from "lucide-react";
 
@@ -59,10 +58,7 @@ export function ProviderAuthSection({
     return () => window.removeEventListener("pageshow", reset);
   }, [connecting]);
 
-  // OAuth writes the CALLER's own `aiSettings` row (see convex/ai/oauth.ts), so
-  // offering it here for the system default would silently save to the admin's
-  // personal settings instead — and tie everyone's AI to one person's account.
-  const canConnect = affordances.oauth !== null && scope === "user";
+  const canConnect = affordances.oauth !== null;
   const connectedAt = stored?.hasKey && stored.provider === spec?.id ? stored.updatedAt : null;
   // The case users get burned by: there is ONE settings row, so connecting
   // replaces whatever provider is in it.
@@ -72,7 +68,7 @@ export function ProviderAuthSection({
     if (!spec) return;
     setConnecting(true);
     try {
-      const { url } = await startConnect({ provider: spec.id });
+      const { url } = await startConnect({ provider: spec.id, scope });
       // Deliberately not clearing `connecting`: navigation is already underway
       // and resetting would flash the button back to idle.
       window.location.href = url;
@@ -101,7 +97,7 @@ export function ProviderAuthSection({
                 // write the same field and the schema records no method.
                 <p className="text-xs text-success-text inline-flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  Tersambung · disimpan {new Date(connectedAt).toLocaleString("id-ID")}
+                  Kunci tersimpan · {new Date(connectedAt).toLocaleString("id-ID")}
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground">
@@ -121,10 +117,16 @@ export function ProviderAuthSection({
                 />
               )}
               <Button size="sm" onClick={() => void onConnect()} disabled={connecting}>
-                {connecting ? "Mengalihkan…" : affordances.oauth.label}
+                {connecting ? "Mengalihkan…" : connectedAt !== null ? `Sambungkan ulang ${spec?.label}` : affordances.oauth.label}
               </Button>
             </div>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            {scope === "global"
+              ? "Koneksi ini menjadi AI default untuk pengguna yang belum punya koneksi pribadi. Pemakaian mengurangi saldo akun OpenRouter admin."
+              : "Pemakaian AI mengurangi saldo akun OpenRouter Anda. Atur batas pemakaian pada layar izin OpenRouter."}
+          </p>
 
           {otherProvider && (
             <p className="text-xs text-warning-text inline-flex items-start gap-1">
@@ -141,11 +143,11 @@ export function ProviderAuthSection({
           id={`${idPrefix}-apiKey`}
           value={apiKey}
           onChange={onApiKeyChange}
-          placeholder={stored?.hasKey ? `Tersimpan: ${stored.keyPreview}` : "sk-…"}
+          placeholder={stored?.hasKey && stored.provider === spec?.id ? `Tersimpan: ${stored.keyPreview}` : "sk-…"}
           docsUrl={affordances.apiKey.docsUrl}
           helper={
             <div className="space-y-1 text-xs text-muted-foreground">
-              {stored?.hasKey && <p>Kosongkan untuk memakai kunci yang sudah tersimpan.</p>}
+              {stored?.hasKey && stored.provider === spec?.id && <p>Kosongkan untuk memakai kunci yang sudah tersimpan.</p>}
               {canConnect && (
                 <p>Kunci login dan kunci tempel memakai slot yang sama — yang terakhir disimpan itu yang dipakai.</p>
               )}
@@ -155,16 +157,6 @@ export function ProviderAuthSection({
                 </p>
               ) : (
                 <p>Kunci ini mengakses akun provider atas nama Anda. Kami simpan terenkripsi; jangan tempel di chat publik.</p>
-              )}
-              {scope === "global" && affordances.oauth && (
-                <p>
-                  Login akun ada di{" "}
-                  <Link href="/dashboard/settings" className="underline">
-                    Setelan → AI
-                  </Link>{" "}
-                  untuk pemakaian pribadi — kuncinya atas nama satu orang, jadi ikut mati kalau
-                  orang itu mencabutnya.
-                </p>
               )}
             </div>
           }

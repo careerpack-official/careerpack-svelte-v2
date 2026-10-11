@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
+import { parseAIConnectResult } from "@/shared/components/ai-settings/connectResult";
+import { notify } from "@/shared/lib/notify";
 import {
   ShieldAlert,
   Users as UsersIcon,
@@ -101,6 +103,17 @@ const TrafficPanel = dynamic(() => import("./TrafficPanel").then((m) => m.Traffi
 
 export function AdminPanel() {
   const router = useRouter();
+  const [panelTab, setPanelTab] = useState("users");
+
+  useEffect(() => {
+    const result = parseAIConnectResult(window.location.search);
+    if (!result) return;
+    setPanelTab("ai");
+    if (result.status === "ok") notify.success("AI default sistem tersambung");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("ai");
+    window.history.replaceState({}, "", url);
+  }, []);
 
   // Two-tier gating: `amIAdmin` lets role-bootstrapped admins in.
   // `amISuperAdmin` controls the analytics charts which still query
@@ -365,7 +378,7 @@ export function AdminPanel() {
       {/* Bottom panels — tabbed so the admin page stops being a 6-section
        *  vertical scroll. Server still gates each query with
        *  `requireAdmin`; client tabs are pure UX. */}
-      <Tabs defaultValue="users" className="w-full">
+      <Tabs value={panelTab} onValueChange={setPanelTab} className="w-full">
         <TabsList variant="pills">
           <TabsTrigger value="users">
             <UsersIcon className="w-3.5 h-3.5" />

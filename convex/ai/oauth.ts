@@ -11,15 +11,14 @@
  * in `OAUTH_ADAPTERS` below. Nothing else in this file, and nothing in the UI,
  * learns the provider's name.
  *
- * NOT in scope here: the admin-global credential. This writes the caller's own
- * `aiSettings` row only, so an admin who wants the shared key on OAuth still
- * pastes it in the Admin Panel.
+ * The parked transaction binds both its owner and destination: personal AI
+ * settings or the admin-managed system default.
  */
-import { action, internalMutation, internalQuery, mutation } from "../_generated/server";
+import { action, internalMutation, mutation } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { ConvexError, v } from "convex/values";
 import { activeUserId as getAuthUserId } from "../_shared/authSession";
-import { authError, requireUser } from "../_shared/auth";
+import { authError, requireAdmin, requireUser } from "../_shared/auth";
 import { randomToken, sha256Base64Url } from "../_shared/pkce";
 import { AI_PROVIDERS, providerOAuth } from "../_shared/aiProviders";
 import { credEncryptionAvailable, encryptCred } from "../_shared/aiCrypto";
@@ -32,6 +31,7 @@ import { requireEnv } from "../_shared/env";
  * abandoned flow is not a standing replay window.
  */
 const FLOW_TTL_MS = 10 * 60 * 1000;
+const scopeValidator = v.union(v.literal("user"), v.literal("global"));
 
 /**
  * ConvexError, not Error: prod Convex redacts an uncaught Error to a bare
@@ -43,7 +43,7 @@ const connectError = (message: string) => new ConvexError({ message });
 
 interface OAuthAdapter {
   /** Where to send the browser. `callbackUrl` is already absolute. */
-  authorizeUrl(args: { challenge: string; callbackUrl: string }): string;
+  authorizeUrl(args: { challenge: string; callbackUrl: string; state: string }): string;
   /** Redeem the code. Returns the secret to store as `aiSettings.apiKey`. */
   exchange(args: {
     code: string;
@@ -57,9 +57,10 @@ const OAUTH_ADAPTERS: Record<string, OAuthAdapter> = {
   // provisioned `sk-or-…` key, which is why this provider is the cheap one:
   // the result is indistinguishable from a pasted key from here on.
   openrouter: {
-    authorizeUrl: ({ challenge, callbackUrl }) =>
+    authorizeUrl: ({ challenge, callbackUrl, state }) =>
       `https://openrouter.ai/auth?callback_url=${encodeURIComponent(callbackUrl)}` +
-      `&code_challenge=${challenge}&code_challenge_method=S256`,
+      `&code_challenge=${challenge}&code_challenge_method=S256&state=${state}` +
+      "&key_label=Careerpack",
     exchange: async ({ code, verifier }) => {
       const res = await fetchWithTimeout("https://openrouter.ai/api/v1/auth/keys", {
         // Same endpoint class as the model catalog: small JSON, fast.
@@ -99,10 +100,10 @@ function callbackUrlFor(provider: string): string {
 }
 
 export const startOAuthConnect = mutation({
-  args: { provider: v.string() },
+  args: { provider: v.string(), scope: v.optional(scopeValidator) },
   returns: v.object({ url: v.string() }),
-  handler: async (ctx, { provider }) => {
-    const userId = await requireUser(ctx);
+  handler: async (ctx, { provider, scope = "user" }) => {
+    const userId = scope === "global" ? await requireAdmin(ctx) : await requireUser(ctx);
     const spec = providerOAuth(provider);
     if (!spec || !OAUTH_ADAPTERS[provider]) {
       throw connectError(`Provider ${provider} tidak mendukung login OAuth`);
@@ -119,6 +120,7 @@ export const startOAuthConnect = mutation({
     // 64 hex chars: inside RFC 7636's 43–128 window and within its charset.
     const verifier = randomToken(32);
     const challenge = await sha256Base64Url(verifier);
+    const state = randomToken(32);
 
     const existing = await ctx.db
       .query("aiOAuthFlows")
@@ -127,27 +129,31 @@ export const startOAuthConnect = mutation({
     // Replace, never accumulate: restarting a connect must invalidate the
     // previous verifier, otherwise an abandoned flow stays redeemable.
     if (existing) await ctx.db.delete(existing._id);
-    await ctx.db.insert("aiOAuthFlows", { userId, provider, verifier, createdAt: Date.now() });
+    await ctx.db.insert("aiOAuthFlows", { userId, provider, verifier, state, scope, createdAt: Date.now() });
 
     return {
       url: OAUTH_ADAPTERS[provider].authorizeUrl({
         challenge,
         callbackUrl: callbackUrlFor(provider),
+        state,
       }),
     };
   },
 });
 
 export const finishOAuthConnect = action({
-  args: { provider: v.string(), code: v.string() },
-  returns: v.object({ provider: v.string(), model: v.string() }),
-  handler: async (ctx, { provider, code }): Promise<{ provider: string; model: string }> => {
+  args: { provider: v.string(), code: v.string(), state: v.string() },
+  returns: v.object({ provider: v.string(), model: v.string(), scope: scopeValidator }),
+  handler: async (ctx, { provider, code, state }): Promise<{ provider: string; model: string; scope: "user" | "global" }> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw authError("Tidak terautentikasi");
     const adapter = OAUTH_ADAPTERS[provider];
     if (!adapter) throw connectError(`Provider ${provider} tidak mendukung login OAuth`);
 
-    const flow = await ctx.runQuery(internal.ai.oauth._getFlow, { userId, provider });
+    if (!code || code.length > 2048 || !state || state.length > 128) {
+      throw connectError("Respons OpenRouter tidak valid. Ulangi penyambungan.");
+    }
+    const flow = await ctx.runMutation(internal.ai.oauth._consumeFlow, { userId, provider, state });
     if (!flow) {
       throw connectError(
         "Sesi penyambungan tidak ditemukan atau sudah kedaluwarsa. Ulangi dari Setelan → AI.",
@@ -160,55 +166,57 @@ export const finishOAuthConnect = action({
       callbackUrl: callbackUrlFor(provider),
     });
 
-    // Store BEFORE clearing: a crash between the two costs the user a retry,
-    // whereas the other order can drop a key that was already issued upstream.
     const model = await ctx.runMutation(internal.ai.oauth._storeConnectedKey, {
       userId,
       provider,
+      scope: flow.scope,
       apiKey: await encryptCred(key),
     });
-    await ctx.runMutation(internal.ai.oauth._clearFlow, { userId, provider });
-    return { provider, model };
+    return { provider, model, scope: flow.scope };
   },
 });
 
 // ----- flow state -----
 
-export const _getFlow = internalQuery({
-  args: { userId: v.id("users"), provider: v.string() },
-  returns: v.union(v.object({ verifier: v.string() }), v.null()),
-  handler: async (ctx, { userId, provider }) => {
+// Atomically consume before exchange: concurrent callbacks cannot redeem twice.
+export const _consumeFlow = internalMutation({
+  args: { userId: v.id("users"), provider: v.string(), state: v.string() },
+  returns: v.union(v.object({ verifier: v.string(), scope: scopeValidator }), v.null()),
+  handler: async (ctx, { userId, provider, state }) => {
     const row = await ctx.db
       .query("aiOAuthFlows")
       .withIndex("by_user_provider", (q) => q.eq("userId", userId).eq("provider", provider))
       .first();
     if (!row) return null;
-    if (Date.now() - row.createdAt > FLOW_TTL_MS) return null;
-    return { verifier: row.verifier };
-  },
-});
-
-export const _clearFlow = internalMutation({
-  args: { userId: v.id("users"), provider: v.string() },
-  handler: async (ctx, { userId, provider }) => {
-    const row = await ctx.db
-      .query("aiOAuthFlows")
-      .withIndex("by_user_provider", (q) => q.eq("userId", userId).eq("provider", provider))
-      .first();
-    if (row) await ctx.db.delete(row._id);
+    if (!row.state || row.state !== state || Date.now() - row.createdAt >= FLOW_TTL_MS) return null;
+    const scope = row.scope ?? "user";
+    if (scope === "global" && await requireAdmin(ctx) !== userId) throw authError("Bukan admin");
+    await ctx.db.delete(row._id);
+    return { verifier: row.verifier, scope };
   },
 });
 
 /**
- * Write the connected key into the caller's own `aiSettings`. Keeps whatever
+ * Write the connected key into the transaction's settings scope. Keeps whatever
  * model they had picked — reconnecting an expired key must not silently move
  * a user off the model they chose — and only falls back to the provider
  * default on a first connect or a provider switch.
  */
 export const _storeConnectedKey = internalMutation({
-  args: { userId: v.id("users"), provider: v.string(), apiKey: v.string() },
+  args: { userId: v.id("users"), provider: v.string(), apiKey: v.string(), scope: scopeValidator },
   returns: v.string(),
-  handler: async (ctx, { userId, provider, apiKey }) => {
+  handler: async (ctx, { userId, provider, apiKey, scope }) => {
+    if (scope === "global") {
+      const adminId = await requireAdmin(ctx);
+      if (adminId !== userId) throw authError("Bukan admin");
+      const existing = await ctx.db.query("globalAISettings").first();
+      const model = existing?.provider === provider && existing.model
+        ? existing.model : AI_PROVIDERS[provider].defaultModel;
+      const patch = { provider, model, apiKey, baseUrl: undefined, enabled: true, updatedBy: adminId, updatedAt: Date.now() };
+      if (existing) await ctx.db.patch(existing._id, patch);
+      else await ctx.db.insert("globalAISettings", patch);
+      return model;
+    }
     const existing = await ctx.db
       .query("aiSettings")
       .withIndex("by_user", (q) => q.eq("userId", userId))
