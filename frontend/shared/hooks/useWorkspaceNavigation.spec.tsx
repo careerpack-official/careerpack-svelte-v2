@@ -68,4 +68,14 @@ describe("membership-aware workspace navigation", () => {
     state.query = "workspace=mine&view=https://evil.example";
     expect(render()).toContain('data-view="overview"');
   });
+  it("keeps dedicated workspace pages scoped and resolves their feature menu", () => {
+    state.pathname = "/dashboard/workspaces/mine/vacancies";
+    state.query = "";
+    expect(render()).toContain('data-workspace="mine"');
+    expect(render()).toContain('data-label="Lowongan"');
+    state.pathname = "/dashboard/workspaces/mine/schedules";
+    expect(render()).toContain('data-view="schedules"');
+    state.pathname = "/dashboard/workspaces/someone-else/vacancies";
+    expect(render()).toContain('data-workspace="personal"');
+  });
 });

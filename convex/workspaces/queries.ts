@@ -128,6 +128,11 @@ export const get = query({
             delivery: row.delivery,
           });
     }
+    const vacancies = workspace.sector === "hr" ? await ctx.db.query("workspaceRecords").withIndex("by_workspace_resource", q => q.eq("workspaceId", workspaceId).eq("resource", "vacancies")).take(200) : [];
+    const visiblePrograms = programs.filter(p => {
+      const vacancy = vacancies.find(row => row.programId === p._id);
+      return !vacancy || (!vacancy.archivedAt && (member.role !== "member" || vacancy.status !== "Draf"));
+    });
     return {
       workspace: {
         _id: workspace._id,
@@ -138,7 +143,7 @@ export const get = query({
         inApp: member.inApp,
         email: member.email,
       },
-      programs: programs.map((p) => ({
+      programs: visiblePrograms.map((p) => ({
         _id: p._id,
         title: p.title,
         description: p.description,
@@ -256,6 +261,7 @@ export const notifications = query({
   returns: v.array(
     v.object({
       _id: v.id("workspaceNotifications"),
+      targetView: v.optional(v.literal("schedules")),
       workspaceId: v.id("workspaces"),
       programId: v.id("workspacePrograms"),
       title: v.string(),
@@ -287,6 +293,7 @@ export const notifications = query({
           _id: row._id,
           workspaceId: row.workspaceId,
           programId: row.programId,
+          ...(row.targetView ? { targetView: row.targetView } : {}),
           title: row.title,
           read: row.read,
           delivery: row.delivery,
@@ -372,6 +379,10 @@ export const resolveTicket = internalQuery({
     )
       return null;
     try {
+      if (workspace.sector === "hr") {
+        const vacancies = await ctx.db.query("workspaceRecords").withIndex("by_workspace_resource", q => q.eq("workspaceId", workspace._id).eq("resource", "vacancies")).take(200);
+        if (vacancies.some(vacancy => vacancy.programId === row.programId && vacancy.archivedAt)) return null;
+      }
       const file = await selectedFile(ctx, ticket.fileId, row.userId);
       return {
         storageId: file.storageId,

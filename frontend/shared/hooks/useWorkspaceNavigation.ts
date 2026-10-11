@@ -8,6 +8,7 @@ import {
   MORE_APPS,
   activeNavForPath,
   workspaceNavigation,
+  workspaceLocation,
 } from "@/shared/lib/dashboardRegistry";
 
 export function useWorkspaceNavigation() {
@@ -19,29 +20,35 @@ export function useWorkspaceNavigation() {
     isAuthenticated && pathname.startsWith("/dashboard") ? {} : "skip",
   );
   const mine = isAuthenticated ? result : isLoading ? undefined : [];
-  const selected =
-    pathname === "/dashboard/workspaces"
-      ? mine?.find((w) => w._id === search.get("workspace"))
-      : undefined;
+  const location = workspaceLocation(pathname, search);
+  const selected = mine?.find((w) => w._id === location.id);
   const navigation = selected
     ? workspaceNavigation(selected, search.get("program") ?? undefined)
     : { primary: PRIMARY_NAV, more: MORE_APPS };
   const all = [...navigation.primary, ...navigation.more];
-  const requestedView =
-    search.get("view") ?? (search.has("program") ? "programs" : "overview");
+  const requestedView = location.view;
   const active = selected
     ? (all.find(
         (item) =>
-          new URL(item.href, "https://careerpack.org").searchParams.get(
-            "view",
-          ) === requestedView,
+          workspaceLocation(
+            new URL(item.href, "https://careerpack.org").pathname,
+            new URLSearchParams(),
+          ).view === requestedView,
       ) ?? navigation.primary[0])
     : activeNavForPath(pathname);
   const view =
     selected && active
-      ? (new URL(active.href, "https://careerpack.org").searchParams.get(
-          "view",
-        ) ?? "overview")
+      ? workspaceLocation(
+          new URL(active.href, "https://careerpack.org").pathname,
+          new URLSearchParams(),
+        ).view
       : "overview";
-  return { ...navigation, mine, selected, active, view };
+  return {
+    ...navigation,
+    mine,
+    selected,
+    active,
+    view,
+    requestedWorkspace: location.id,
+  };
 }

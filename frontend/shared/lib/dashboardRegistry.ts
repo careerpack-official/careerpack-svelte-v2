@@ -303,9 +303,17 @@ export interface WorkspaceNavScope {
 }
 
 export function workspaceHref(id: string, view = "overview", program?: string) {
-  const params = new URLSearchParams({ workspace: id, view });
+  const params = new URLSearchParams();
   if (program) params.set("program", program);
-  return `/dashboard/workspaces?${params}`;
+  return `/dashboard/workspaces/${encodeURIComponent(id)}/${encodeURIComponent(view)}${params.size ? `?${params}` : ""}`;
+}
+
+/** Keep old emailed/bookmarked query links working alongside dedicated pages. */
+export function workspaceLocation(pathname: string, search: Pick<URLSearchParams, "get" | "has">) {
+  if (pathname === "/dashboard/workspaces") return { id: search.get("workspace"), view: search.get("view") ?? (search.has("program") ? "programs" : "overview") };
+  const match = /^\/dashboard\/workspaces\/([^/]+)(?:\/([^/]+))?$/.exec(pathname);
+  try { return { id: match ? decodeURIComponent(match[1]) : null, view: match?.[2] ? decodeURIComponent(match[2]) : "overview" }; }
+  catch { return { id: null, view: "overview" }; }
 }
 
 /** Workspace links always open membership-guarded submissions, never personal tables. */
@@ -327,7 +335,7 @@ export function workspaceNavigation(w: WorkspaceNavScope, program?: string) {
                 ? "CV peserta"
                 : "CV saya"
             : hr
-              ? "Program HR"
+              ? "Lowongan"
               : studio
                 ? "Proyek studio"
                 : "Program peserta",
@@ -347,7 +355,7 @@ export function workspaceNavigation(w: WorkspaceNavScope, program?: string) {
             ? studio
               ? "profile"
               : "cv"
-            : "programs",
+            : hr ? "vacancies" : studio ? "projects" : "programs",
         program,
       ),
     }),
@@ -370,12 +378,12 @@ export function workspaceNavigation(w: WorkspaceNavScope, program?: string) {
         label: hr
           ? "Dokumen peserta"
           : studio
-            ? "Proposal & kontrak"
+            ? "Proposal"
             : "Presentasi & moodboard",
-        view: hr ? "documents" : studio ? "proposal-contract" : "presentation",
+        view: hr ? "documents" : studio ? "proposals" : "presentation",
       },
       ...(hr
-        ? { interview: { label: "Persiapan wawancara", view: "interview" } }
+        ? { interview: { label: "Jadwal wawancara", view: "schedules" } }
         : !studio
           ? {
               "personal-branding": {
@@ -387,6 +395,13 @@ export function workspaceNavigation(w: WorkspaceNavScope, program?: string) {
       ...(reviewer
         ? { applications: { label: "Tinjauan peserta", view: "review" } }
         : {}),
+      ...(studio ? {
+        matcher: { label: "Klien", view: "clients" },
+        roadmap: { label: "Tugas proyek", view: "tasks" },
+        applications: { label: "Kontrak", view: "contracts" },
+      } : {}),
+      workspaces: { label: hr ? "Kiriman Careerpack" : "Program & kiriman", view: "programs" },
+      calculator: { label: "Harga pilot (draf)", view: "pricing" },
       ...(manager
         ? { networking: { label: "Anggota workspace", view: "members" } }
         : {}),

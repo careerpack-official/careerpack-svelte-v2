@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx, MutationCtx } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { authError, requireUser } from "../_shared/auth";
 import { assertShortText } from "../_shared/validate";
 
@@ -176,7 +177,23 @@ export async function programAccess(
 ) {
   const program = await ctx.db.get(programId);
   if (!program) throw authError("Program tidak tersedia.");
-  return { ...(await access(ctx, program.workspaceId, allowed)), program };
+  const scope = await access(ctx, program.workspaceId, allowed);
+  if (scope.workspace.sector === "hr") {
+    const vacancies = await ctx.db
+      .query("workspaceRecords")
+      .withIndex("by_workspace_resource", (q) =>
+        q.eq("workspaceId", program.workspaceId).eq("resource", "vacancies"),
+      )
+      .take(200);
+    const vacancy = vacancies.find((row) => row.programId === programId);
+    if (
+      vacancy &&
+      (vacancy.archivedAt ||
+        (scope.member.role === "member" && vacancy.status === "Draf"))
+    )
+      throw authError("Lowongan tidak tersedia.");
+  }
+  return { ...scope, program };
 }
 
 export async function activeSubmission(
@@ -208,4 +225,29 @@ export async function selectedFile(
     .take(2);
   if (owners.length !== 1) throw authError("Berkas tidak ditemukan.");
   return file;
+}
+
+export async function notifyMember(
+  ctx: MutationCtx,
+  member: Doc<"workspaceMembers">,
+  programId: Id<"workspacePrograms">,
+  title: string,
+  targetView?: "schedules",
+) {
+  if (!member.inApp && !member.email) return;
+  const id = await ctx.db.insert("workspaceNotifications", {
+    workspaceId: member.workspaceId,
+    memberId: member._id,
+    userId: member.userId,
+    programId,
+    title,
+    ...(targetView ? { targetView } : {}),
+    read: false,
+    createdAt: Date.now(),
+    delivery: member.email ? "pending" : "manual",
+  });
+  if (member.email)
+    await ctx.scheduler.runAfter(0, internal.workspaces.email.sendUpdate, {
+      notificationId: id,
+    });
 }
