@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 import { Trash2, Upload } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -16,14 +18,22 @@ interface Props {
   onChange: (next: PortfolioMedia[]) => void;
 }
 
+function MediaThumbnail({ media }: { media: PortfolioMedia }) {
+  const storedUrl = useQuery(api.files.queries.getFileUrl, media.kind === "image" ? { storageId: media.storageId } : "skip");
+  const url = storedUrl === undefined ? media.url : storedUrl;
+  return url && media.kind === "image" ? (
+    <Image src={url} alt={media.caption ?? ""} fill unoptimized sizes="96px" className="object-cover" />
+  ) : (
+    <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">{media.kind}</div>
+  );
+}
+
 export function MediaEditor({ media, onChange }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const handleUploaded = (
     storageId: string,
     kind: PortfolioMediaKind,
-    // Without the local preview URL a freshly uploaded image sat as a grey box
-    // labelled "image" until the form was saved and re-read from the server.
     url?: string | null,
   ) => {
     onChange([...media, { storageId, kind, url }]);
@@ -65,7 +75,7 @@ export function MediaEditor({ media, onChange }: Props) {
           type="button"
           variant="outline"
           onClick={() => setPickerOpen(true)}
-          className="h-full min-h-[120px] flex-col gap-2 lg:h-full lg:min-h-[120px]"
+          className="h-full min-h-[120px] flex-col gap-2 lg:h-full lg:min-h-[120px] lg:whitespace-normal"
         >
           <Upload className="h-5 w-5" />
           <span className="text-sm">Pilih dari Pustaka Konten</span>
@@ -90,41 +100,29 @@ export function MediaEditor({ media, onChange }: Props) {
               className="flex items-start gap-3 rounded-md border border-border p-2"
             >
               <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded bg-muted">
-                {m.url && m.kind === "image" ? (
-                  <Image
-                    src={m.url}
-                    alt={m.caption ?? ""}
-                    fill
-                    unoptimized
-                    sizes="96px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                    {m.kind}
-                  </div>
-                )}
+                <MediaThumbnail media={m} />
                 {idx === 0 && (
                   <span className="absolute bottom-0 right-0 rounded-tl bg-brand px-1 text-xs font-bold text-brand-foreground">
                     COVER
                   </span>
                 )}
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="min-w-0 flex-1 space-y-1">
                 <Input
                   placeholder="Caption (opsional)"
                   value={m.caption ?? ""}
                   onChange={(e) => updateCaption(idx, e.target.value)}
                   className="h-8 text-xs"
                 />
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
                     onClick={() => move(idx, -1)}
                     disabled={idx === 0}
-                    className="h-7 px-2 text-xs"
+                    aria-label="Geser media ke atas"
+                    className="h-7 min-w-[44px] px-2 text-xs lg:min-w-0"
                   >
                     ↑
                   </Button>
@@ -134,7 +132,8 @@ export function MediaEditor({ media, onChange }: Props) {
                     variant="ghost"
                     onClick={() => move(idx, 1)}
                     disabled={idx === media.length - 1}
-                    className="h-7 px-2 text-xs"
+                    aria-label="Geser media ke bawah"
+                    className="h-7 min-w-[44px] px-2 text-xs lg:min-w-0"
                   >
                     ↓
                   </Button>
@@ -143,7 +142,8 @@ export function MediaEditor({ media, onChange }: Props) {
                     size="sm"
                     variant="ghost"
                     onClick={() => remove(idx)}
-                    className="h-7 px-2 text-xs text-destructive"
+                    aria-label="Hapus media dari daftar"
+                    className="h-7 min-w-[44px] px-2 text-xs text-destructive lg:min-w-0"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -159,7 +159,7 @@ export function MediaEditor({ media, onChange }: Props) {
         onOpenChange={setPickerOpen}
         accept="image"
         onPick={(file) => {
-          handleUploaded(file.storageId, "image");
+          handleUploaded(file.storageId, "image", file.url);
           setPickerOpen(false);
         }}
       />

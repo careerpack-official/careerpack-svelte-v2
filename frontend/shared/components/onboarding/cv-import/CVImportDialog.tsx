@@ -134,9 +134,10 @@ export function CVImportDialog({ open, onOpenChange, onApplied, cvId }: CVImport
                 ocrOffer={flow.ocrOffer}
                 manual={flow.manual}
                 rawText={flow.rawText}
+                parseError={flow.parseError}
                 onRawTextChange={flow.setRawText}
                 onToggleManual={flow.openManual}
-                onPickFile={(file) => void flow.handleFile(file)}
+                onPickFile={(file, fromLibrary) => void flow.handleFile(file, fromLibrary)}
                 onEscalateOcr={() => void flow.escalateOcr()}
                 onParseText={flow.parseRawText}
                 onRestart={flow.restart}

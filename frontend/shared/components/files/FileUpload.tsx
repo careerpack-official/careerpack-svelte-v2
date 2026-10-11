@@ -121,15 +121,12 @@ export function FileUpload({
   const cropAspect =
     typeof crop === "object" && crop?.aspect ? crop.aspect : undefined;
 
+  const activePreviewUrl = state.kind === "idle" ? null : state.previewUrl;
   useEffect(() => {
-    const url =
-      state.kind === "uploading" || state.kind === "done"
-        ? state.previewUrl
-        : null;
     return () => {
-      if (url) URL.revokeObjectURL(url);
+      if (activePreviewUrl) URL.revokeObjectURL(activePreviewUrl);
     };
-  }, [state]);
+  }, [activePreviewUrl]);
 
   useEffect(() => {
     return () => {
@@ -294,7 +291,7 @@ export function FileUpload({
     return (
       <div
         className={cn(
-          "rounded-xl border border-border bg-card p-3 flex items-start gap-3",
+          "min-w-0 max-w-full rounded-xl border border-border bg-card p-3 flex items-start gap-3",
           className,
         )}
       >
@@ -313,7 +310,7 @@ export function FileUpload({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate text-foreground">
+          <p className="text-sm font-medium break-all text-foreground">
             {result.fileName}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -321,13 +318,13 @@ export function FileUpload({
             {result.fileType.split("/")[1]?.toUpperCase() ?? result.fileType}
           </p>
           {savings && (
-            <p className="text-xs text-success-text mt-1 truncate">{savings}</p>
+            <p className="text-xs text-success-text mt-1 break-words">{savings}</p>
           )}
         </div>
         <Button
           type="button"
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={clear}
           aria-label="Hapus file"
           className="flex-shrink-0"
@@ -339,7 +336,7 @@ export function FileUpload({
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("min-w-0 max-w-full space-y-2", className)}>
       <p className="text-sm font-medium text-foreground">{label}</p>
       <button
         type="button"
@@ -363,7 +360,7 @@ export function FileUpload({
           {state.kind === "uploading" ? (
             <>
               <Loader2 className="w-8 h-8 text-brand animate-spin" />
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-medium break-all text-foreground">
                 Mengunggah {state.fileName}…
               </p>
               <div className="w-full max-w-xs space-y-1">

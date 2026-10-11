@@ -42,6 +42,7 @@ export interface UploadStepProps {
   /** Manual paste area is open. */
   manual: boolean;
   rawText: string;
+  parseError: string | null;
   onRawTextChange: (text: string) => void;
   onToggleManual: () => void;
   /** `fromLibrary` tells the flow not to re-upload a file it already has. */
@@ -71,6 +72,7 @@ export function UploadStep({
   ocrOffer,
   manual,
   rawText,
+  parseError,
   onRawTextChange,
   onToggleManual,
   onPickFile,
@@ -114,10 +116,9 @@ export function UploadStep({
       <div className="space-y-3">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Belum ketemu isinya</AlertTitle>
+          <AlertTitle>{parseError ? "Gagal membaca CV" : "Belum ketemu isinya"}</AlertTitle>
           <AlertDescription>
-            AI tidak menemukan data CV di file ini. Perbaiki teks lalu coba
-            lagi, atau isi manual.
+            {parseError ?? "AI tidak menemukan data CV di file ini. Perbaiki teks lalu coba lagi, atau isi manual."}
           </AlertDescription>
         </Alert>
         <Textarea
@@ -146,6 +147,13 @@ export function UploadStep({
 
   return (
     <div className="space-y-4">
+      {parseError && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Gagal membaca CV</AlertTitle>
+          <AlertDescription>{parseError}</AlertDescription>
+        </Alert>
+      )}
       {isDemo && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -194,12 +202,12 @@ export function UploadStep({
           type="button"
           disabled={blocked}
           onClick={() => setLibraryOpen(true)}
-          className="mt-2 block w-full text-xs font-medium text-brand hover:underline disabled:opacity-50"
+          className="mt-2 block min-h-[44px] w-full text-xs font-medium text-brand hover:underline disabled:opacity-50 lg:min-h-0"
         >
           atau pilih dari Pustaka Konten
         </button>
         {fileName && (
-          <p className="mt-2 truncate text-xs text-muted-foreground">{fileName}</p>
+          <p className="mt-2 break-all text-xs text-muted-foreground">{fileName}</p>
         )}
       </div>
 
