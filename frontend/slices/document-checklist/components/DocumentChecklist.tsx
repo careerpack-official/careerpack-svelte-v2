@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  AlertCircle, Bell, Building2, Globe, Plane,
+  AlertCircle, Bell, Building2, ChevronDown, Globe, LayoutGrid, List, ListCollapse, Plane,
 } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { ResponsivePageHeader } from "@/shared/components/ui/responsive-page-header";
@@ -16,6 +16,19 @@ import { useChecklistData } from "../hooks/useChecklistData";
 import { CategorySection } from "./document-checklist/CategorySection";
 import { ItemDetailDialog } from "./document-checklist/ItemDetailDialog";
 import { CountryTemplatePicker } from "./CountryTemplatePicker";
+import { Button } from "@/shared/components/ui/button";
+import { useLocalStorageState } from "@/shared/hooks/useLocalStorageState";
+import type { ChecklistView } from "./document-checklist/ChecklistItemCard";
+import {
+  ResponsiveDropdownMenu, ResponsiveDropdownMenuTrigger, ResponsiveDropdownMenuContent,
+  ResponsiveDropdownMenuRadioGroup, ResponsiveDropdownMenuRadioItem,
+} from "@/shared/components/ui/responsive-dropdown-menu";
+
+const VIEWS = [
+  { value: "list", label: "Daftar", icon: List },
+  { value: "detail", label: "Detail", icon: ListCollapse },
+  { value: "thumbnail", label: "Thumbnail", icon: LayoutGrid },
+] as const;
 
 /**
  * Shortcut destinations for the "Destinasi Populer" carousel — country
@@ -36,6 +49,9 @@ export function DocumentChecklist() {
   const [selectedItem, setSelectedItem] = useState<ChecklistItem | null>(null);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("local");
+  const [savedView, setView] = useLocalStorageState<ChecklistView>("careerpack:checklist-view", "detail");
+  const selectedView = VIEWS.find((option) => option.value === savedView) ?? VIEWS[1];
+  const view = selectedView.value;
   const pathname = usePathname();
 
   const {
@@ -53,6 +69,28 @@ export function DocumentChecklist() {
       <ResponsivePageHeader
         title="Ceklis Dokumen"
         description="Kelola semua dokumen yang diperlukan untuk melamar pekerjaan"
+        actions={
+          <div className="flex w-full justify-end">
+            <ResponsiveDropdownMenu>
+              <ResponsiveDropdownMenuTrigger asChild>
+                <Button variant="outline" aria-label={`Pilihan tampilan: ${selectedView.label}`}>
+                  <selectedView.icon className="h-4 w-4" aria-hidden />
+                  {selectedView.label}
+                  <ChevronDown className="h-4 w-4" aria-hidden />
+                </Button>
+              </ResponsiveDropdownMenuTrigger>
+              <ResponsiveDropdownMenuContent align="end" drawerTitle="Pilihan tampilan">
+                <ResponsiveDropdownMenuRadioGroup value={view} onValueChange={(value) => setView(value as ChecklistView)}>
+                  {VIEWS.map(({ value, label, icon: Icon }) => (
+                    <ResponsiveDropdownMenuRadioItem key={value} value={value} className="min-h-[44px] lg:min-h-0">
+                      <span className="flex items-center gap-2"><Icon className="h-4 w-4" aria-hidden />{label}</span>
+                    </ResponsiveDropdownMenuRadioItem>
+                  ))}
+                </ResponsiveDropdownMenuRadioGroup>
+              </ResponsiveDropdownMenuContent>
+            </ResponsiveDropdownMenu>
+          </div>
+        }
       />
 
       <Tabs
@@ -80,6 +118,7 @@ export function DocumentChecklist() {
           <CategorySection
             isLoading={isLoading}
             category="local"
+            view={view}
             filterCategory={filterCategory}
             setFilterCategory={setFilterCategory}
             progress={localProgress}
@@ -134,6 +173,7 @@ export function DocumentChecklist() {
           <CategorySection
             isLoading={isLoading}
             category="international"
+            view={view}
             filterCategory={filterCategory}
             setFilterCategory={setFilterCategory}
             progress={internationalProgress}

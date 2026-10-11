@@ -10,7 +10,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { indonesianCategoryLabels } from "@/shared/data/indonesianData";
 import type { ChecklistItem } from "../../types";
-import { ChecklistItemCard } from "./ChecklistItemCard";
+import { ChecklistItemCard, type ChecklistView } from "./ChecklistItemCard";
+import { cn } from "@/shared/lib/utils";
 import { CategoryFilter } from "./CategoryFilter";
 import { ProgressSummary } from "./ProgressSummary";
 import type { ChecklistProgress } from "../../hooks/useChecklistData";
@@ -21,6 +22,7 @@ interface Props {
    *  "Belum ada dokumen" on every fresh page load. */
   isLoading?: boolean;
   category: "local" | "international";
+  view: ChecklistView;
   filterCategory: string | null;
   setFilterCategory: (s: string | null) => void;
   progress: ChecklistProgress;
@@ -53,7 +55,7 @@ interface Props {
  * both rail rows — only the mobile stacking order changes.
  */
 export function CategorySection({
-  isLoading, category, filterCategory, setFilterCategory,
+  isLoading, category, view, filterCategory, setFilterCategory,
   progress, filteredItems, subcategories, items,
   onToggle, onSelect, notice, sidebarExtra,
 }: Props) {
@@ -104,11 +106,15 @@ export function CategorySection({
                     denser than a stack of individually-bordered cards. From
                     `sm` up it reverts to the app's usual gapped-card list
                     (ChecklistItemCard supplies its own border there). */}
-                <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border sm:divide-y-0 sm:space-y-3 sm:overflow-visible sm:rounded-none sm:border-0">
+                <div className={cn(view === "thumbnail"
+                  ? "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                  : "divide-y divide-border overflow-hidden rounded-2xl border border-border sm:divide-y-0 sm:space-y-3 sm:overflow-visible sm:rounded-none sm:border-0")}
+                >
                   {filteredItems.map((item) => (
                     <ChecklistItemCard
                       key={item.id}
                       item={item}
+                      view={view}
                       onToggle={onToggle}
                       onSelect={onSelect}
                     />
