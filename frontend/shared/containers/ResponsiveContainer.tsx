@@ -8,6 +8,7 @@ import { DesktopContainer } from "./DesktopContainer";
 import { AIAgentConsole } from "@/slices/ai-agent";
 import { ALL_NAV_ITEMS } from "@/shared/components/layout/navConfig";
 import { LoadingScreen } from "@/shared/components/feedback/LoadingScreen";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 
 /**
  * MobileContainer di-lazy supaya bundle desktop tidak menarik BottomNav +
@@ -35,8 +36,16 @@ export function ResponsiveContainer({ children }: ResponsiveContainerProps) {
   const [aiOpen, setAiOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { primary, more, selected } = useWorkspaceNavigation();
 
   const handleNavigate = (view: string) => {
+    if (selected) {
+      const item = [...primary, ...more].find(
+        (n) => n.id === view || (n.id === "home" && view === "dashboard"),
+      );
+      if (item) router.push(item.href);
+      return;
+    }
     // AI sering pakai alias "home" / "dashboard" untuk root dashboard
     if (view === "dashboard" || view === "home") {
       router.push("/dashboard");

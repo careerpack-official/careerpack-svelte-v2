@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { MORE_APPS, type MoreAppTile } from "@/shared/components/layout/navConfig";
+import { type MoreAppTile } from "@/shared/components/layout/navConfig";
+import { useWorkspaceNavigation } from "./useWorkspaceNavigation";
 
 /**
  * Returns the `MORE_APPS` tiles filtered by the caller's admin status.
@@ -18,9 +19,10 @@ import { MORE_APPS, type MoreAppTile } from "@/shared/components/layout/navConfi
  */
 export function useVisibleMoreApps(): ReadonlyArray<MoreAppTile> {
   const amIAdmin = useQuery(api.admin.queries.amIAdmin);
+  const { more } = useWorkspaceNavigation();
 
   return useMemo(() => {
-    if (amIAdmin) return MORE_APPS;
-    return MORE_APPS.filter((m) => !m.superAdminOnly);
-  }, [amIAdmin]);
+    if (amIAdmin) return more;
+    return more.filter((m) => !m.superAdminOnly);
+  }, [amIAdmin, more]);
 }

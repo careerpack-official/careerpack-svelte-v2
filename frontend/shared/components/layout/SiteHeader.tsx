@@ -22,7 +22,11 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import { SidebarTrigger } from "@/shared/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +42,7 @@ import {
   formatUnreadBadge,
 } from "@/shared/hooks/useUnreadNotifications";
 import { ROUTES } from "@/shared/lib/routes";
-import { labelForPath } from "./navConfig";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 
 interface SiteHeaderProps {
   onAITap: () => void;
@@ -55,14 +59,21 @@ export function SiteHeader({ onAITap }: SiteHeaderProps) {
   const user = state.user;
   const unreadCount = useUnreadNotifications();
   const unreadBadge = formatUnreadBadge(unreadCount);
-  const label = labelForPath(pathname) ?? "Dashboard";
+  const { active, primary, more, selected } = useWorkspaceNavigation();
+  const label = active?.label ?? "Dashboard";
+  const notificationHref =
+    more.find((item) => item.id === "notifications")?.href ??
+    ROUTES.dashboard.notifications;
   const initials = (user?.name || "U").slice(0, 1).toUpperCase();
   // OS-aware shortcut label. Default "Ctrl K" SSR-safe (majority users),
   // swap to ⌘K post-mount on Mac. No hydration mismatch — value updates
   // after first paint via useEffect.
   const [shortcutLabel, setShortcutLabel] = useState("Ctrl K");
   useEffect(() => {
-    if (typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)) {
+    if (
+      typeof navigator !== "undefined" &&
+      /Mac|iPhone|iPad/.test(navigator.platform)
+    ) {
       setShortcutLabel("⌘K");
     }
   }, []);
@@ -74,13 +85,20 @@ export function SiteHeader({ onAITap }: SiteHeaderProps) {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem className="hidden sm:block">
-            <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            <BreadcrumbLink
+              href={primary[0].href}
+              className="block max-w-48 truncate"
+            >
+              {selected?.name ?? "Dashboard"}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           {pathname !== "/dashboard" && (
             <>
               <BreadcrumbSeparator className="hidden sm:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>{label}</BreadcrumbPage>
+                <BreadcrumbPage className="block max-w-48 truncate">
+                  {label}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           )}
@@ -162,14 +180,16 @@ export function SiteHeader({ onAITap }: SiteHeaderProps) {
           size="icon"
           className="relative"
           aria-label={
-            unreadCount > 0
-              ? `Notifikasi, ${unreadCount} belum dibaca`
-              : "Notifikasi"
+            selected
+              ? "Notifikasi workspace"
+              : unreadCount > 0
+                ? `Notifikasi, ${unreadCount} belum dibaca`
+                : "Notifikasi"
           }
         >
-          <Link href={ROUTES.dashboard.notifications}>
+          <Link href={notificationHref}>
             <Bell className="w-4 h-4" />
-            {unreadBadge && (
+            {!selected && unreadBadge && (
               <span
                 aria-hidden
                 className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold leading-none text-destructive-foreground"
@@ -221,7 +241,12 @@ function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Menu akun" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Menu akun"
+          className="rounded-full"
+        >
           <Avatar className="w-8 h-8">
             <AvatarImage src={avatar} alt={name ?? "Pengguna"} />
             <AvatarFallback className="bg-gradient-to-br from-brand-from to-brand-to text-brand-foreground text-xs font-bold">
@@ -247,7 +272,10 @@ function UserMenu({
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onLogout} className="text-destructive focus:text-destructive">
+        <DropdownMenuItem
+          onSelect={onLogout}
+          className="text-destructive focus:text-destructive"
+        >
           <LogOut className="w-4 h-4 mr-2" /> Keluar
         </DropdownMenuItem>
       </DropdownMenuContent>

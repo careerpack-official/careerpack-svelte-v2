@@ -5,7 +5,7 @@ import { BottomNav } from "@/shared/components/layout/BottomNav";
 import { MoreDrawer } from "@/shared/components/layout/MoreDrawer";
 import { MobileUserMenu } from "@/shared/components/layout/MobileUserMenu";
 import { ThemePresetSwitcher } from "@/shared/components/theme/ThemePresetSwitcher";
-import { BrandMark } from "@/shared/components/brand/Logo";
+import { WorkspaceSwitcher } from "@/shared/components/layout/WorkspaceSwitcher";
 import { PullToRefresh } from "@/shared/components/interactions/PullToRefresh";
 
 interface MobileContainerProps {
@@ -53,7 +53,8 @@ export function MobileContainer({
           id="main-content"
           className="flex-1 px-4"
           style={{
-            paddingBottom: "calc(var(--nav-height) + var(--safe-bottom) + 1rem)",
+            paddingBottom:
+              "calc(var(--nav-height) + var(--safe-bottom) + 1rem)",
           }}
         >
           {children}
@@ -81,10 +82,7 @@ function MobileTopBar() {
         height: "calc(3rem + var(--safe-top))",
       }}
     >
-      <span className="flex items-center gap-2 text-sm font-semibold">
-        <BrandMark size={14} />
-        CareerPack
-      </span>
+      <WorkspaceSwitcher mobile />
       <div className="flex items-center gap-1">
         {/* Single theme controller — opens a Popover with mode tabs
             (Terang/Gelap/Sistem) sticky on top + preset palette

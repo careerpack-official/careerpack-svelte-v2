@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Home, ChevronRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { activeNavForPath } from "./navConfig";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 
 /**
  * Breadcrumb — auto-derived from the current pathname via `activeNavForPath`.
@@ -25,11 +24,10 @@ export interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ className, standalone = false }: BreadcrumbProps) {
-  const pathname = usePathname();
-  const active = activeNavForPath(pathname);
+  const { active, primary, selected } = useWorkspaceNavigation();
 
   // Derived trail: always includes Home ⌂. When on a sub-view, append it.
-  const onHome = pathname === "/dashboard" || pathname === "/";
+  const onHome = active?.id === "home";
   const showCurrent = !onHome && active && active.href !== "/dashboard";
 
   return (
@@ -42,17 +40,15 @@ export function Breadcrumb({ className, standalone = false }: BreadcrumbProps) {
       )}
     >
       <Link
-        href="/dashboard"
+        href={primary[0].href}
         className={cn(
           "inline-flex items-center gap-1 transition-colors",
-          onHome
-            ? "text-foreground font-medium"
-            : "hover:text-foreground",
+          onHome ? "text-foreground font-medium" : "hover:text-foreground",
         )}
         aria-current={onHome ? "page" : undefined}
       >
         <Home className="h-3 w-3" aria-hidden />
-        <span>Dashboard</span>
+        <span>{selected?.name ?? "Dashboard"}</span>
       </Link>
       {showCurrent && (
         <>

@@ -293,3 +293,135 @@ export function activeNavForPath(pathname: string): NavItem | null {
     ).sort((a, b) => b.href.length - a.href.length)[0] ?? null
   );
 }
+
+export interface WorkspaceNavScope {
+  _id: string;
+  name: string;
+  kind: "institution" | "business";
+  sector: "interior-design" | "hr";
+  role: "owner" | "admin" | "mentor" | "member";
+}
+
+export function workspaceHref(id: string, view = "overview", program?: string) {
+  const params = new URLSearchParams({ workspace: id, view });
+  if (program) params.set("program", program);
+  return `/dashboard/workspaces?${params}`;
+}
+
+/** Workspace links always open membership-guarded submissions, never personal tables. */
+export function workspaceNavigation(w: WorkspaceNavScope, program?: string) {
+  const hr = w.sector === "hr";
+  const studio = !hr && w.kind === "business";
+  const reviewer = w.role !== "member";
+  const manager = w.role === "owner" || w.role === "admin";
+  const primary = PRIMARY_NAV.map(
+    (item): NavItem => ({
+      ...item,
+      label:
+        item.id === "home"
+          ? "Ringkasan workspace"
+          : item.id === "cv"
+            ? studio
+              ? "Profil studio"
+              : reviewer
+                ? "CV peserta"
+                : "CV saya"
+            : hr
+              ? "Program HR"
+              : studio
+                ? "Proyek studio"
+                : "Program peserta",
+      icon:
+        item.id === "home"
+          ? Building2
+          : item.id === "calendar"
+            ? Briefcase
+            : studio
+              ? Building2
+              : item.icon,
+      href: workspaceHref(
+        w._id,
+        item.id === "home"
+          ? "overview"
+          : item.id === "cv"
+            ? studio
+              ? "profile"
+              : "cv"
+            : "programs",
+        program,
+      ),
+    }),
+  );
+  const sections: Partial<Record<MoreAppId, { label: string; view: string }>> =
+    {
+      portfolio: {
+        label: studio
+          ? "Portofolio studio"
+          : reviewer
+            ? "Portofolio peserta"
+            : "Portofolio saya",
+        view: "portfolio",
+      },
+      checklist: {
+        label: studio ? "Dokumen usaha" : "Checklist peserta",
+        view: studio ? "documents" : "checklist",
+      },
+      library: {
+        label: hr
+          ? "Dokumen peserta"
+          : studio
+            ? "Proposal & kontrak"
+            : "Presentasi & moodboard",
+        view: hr ? "documents" : studio ? "proposal-contract" : "presentation",
+      },
+      ...(hr
+        ? { interview: { label: "Persiapan wawancara", view: "interview" } }
+        : !studio
+          ? {
+              "personal-branding": {
+                label: "Branding desainer",
+                view: "brand",
+              },
+            }
+          : {}),
+      ...(reviewer
+        ? { applications: { label: "Tinjauan peserta", view: "review" } }
+        : {}),
+      ...(manager
+        ? { networking: { label: "Anggota workspace", view: "members" } }
+        : {}),
+      notifications: { label: "Notifikasi workspace", view: "notifications" },
+      settings: { label: "Pengaturan workspace", view: "preferences" },
+    };
+  const more: MoreAppTile[] = MORE_APPS.flatMap((item) => {
+    const section = sections[item.id];
+    if (section)
+      return [
+        {
+          ...item,
+          label: section.label,
+          href: workspaceHref(w._id, section.view, program),
+          badge: undefined,
+        },
+      ];
+    if (item.id === "help") return [{ ...item, label: "Bantuan Careerpack" }];
+    if (item.id === "admin-panel")
+      return [{ ...item, label: "Admin platform" }];
+    return [];
+  });
+  return { primary, more };
+}
+
+export function workspaceEntryKeys(
+  view: string,
+): readonly string[] | undefined {
+  if (view === "cv") return ["cv"];
+  if (view === "portfolio") return ["portfolio"];
+  if (view === "profile") return ["profile"];
+  if (view === "brand") return ["brand"];
+  if (view === "presentation") return ["presentation"];
+  if (view === "interview") return ["interview"];
+  if (view === "proposal-contract") return ["proposal", "contract"];
+  if (view === "documents") return ["documents"];
+  return undefined;
+}

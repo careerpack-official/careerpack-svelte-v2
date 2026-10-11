@@ -18,6 +18,11 @@ import {
 } from "@/shared/components/ui/tabs";
 import { notify } from "@/shared/lib/notify";
 import { IS_HR_PILOT, PERSONAL_APP_ORIGIN } from "@/shared/lib/productMode";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
+import {
+  workspaceHref,
+  workspaceEntryKeys,
+} from "@/shared/lib/dashboardRegistry";
 import { CreateWorkspace, CreateProgram } from "./WorkspaceForms";
 import { ProgramPanel } from "./ProgramPanel";
 import { MembersPanel } from "./MembersPanel";
@@ -40,7 +45,7 @@ export function WorkspaceSlice() {
 function WorkspaceHub() {
   const router = useRouter();
   const search = useSearchParams();
-  const mine = useQuery(api.workspaces.queries.listMine);
+  const { mine, selected, active, view } = useWorkspaceNavigation();
   const configuration = useQuery(api.workspaces.queries.configuration);
   const notices = useQuery(api.workspaces.queries.notifications);
   const accept = useMutation(api.workspaces.mutations.acceptInvite);
@@ -62,7 +67,6 @@ function WorkspaceHub() {
     api.workspaces.queries.previewInvite,
     token ? { token } : "skip",
   );
-  const selected = mine?.find((w) => w._id === search.get("workspace"));
   const data = useQuery(
     api.workspaces.queries.get,
     selected ? { workspaceId: selected._id } : "skip",
@@ -73,10 +77,12 @@ function WorkspaceHub() {
   const manager = selected && ["owner", "admin"].includes(selected.role);
   const relevantNotices =
     notices?.filter((n) => !selected || n.workspaceId === selected._id) ?? [];
-  function selectWorkspace(id: string, programId?: string) {
-    const params = new URLSearchParams({ workspace: id });
-    if (programId) params.set("program", programId);
-    router.push(`/dashboard/workspaces?${params}`);
+  function selectWorkspace(
+    id: string,
+    programId?: string,
+    nextView = programId ? "programs" : "overview",
+  ) {
+    router.push(workspaceHref(id, nextView, programId));
   }
   if (mine === undefined) return <PageSkeleton />;
   return (
@@ -86,7 +92,9 @@ function WorkspaceHub() {
           <p className="text-sm text-muted-foreground">
             {IS_HR_PILOT ? "Careerpack HR · Pilot terpisah" : "Careerpack"}
           </p>
-          <h1 className="text-2xl font-semibold">Workspace</h1>
+          <h1 className="text-2xl font-semibold">
+            {selected ? active?.label : "Workspace"}
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Institusi, bisnis, dan HR memakai area bersama. Persiapan karier
             pribadi tetap berada di Careerpack Anda.
@@ -238,32 +246,7 @@ function WorkspaceHub() {
           )}
         </section>
       )}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-0 flex-1">
-          <label
-            htmlFor="workspace-picker"
-            className="mb-2 block text-sm font-medium"
-          >
-            Area aktif
-          </label>
-          <select
-            id="workspace-picker"
-            value={selected?._id ?? ""}
-            onChange={(e) =>
-              e.target.value
-                ? selectWorkspace(e.target.value)
-                : router.push("/dashboard/workspaces")
-            }
-            className="h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm lg:h-9"
-          >
-            <option value="">Careerpack pribadi · semua workspace</option>
-            {mine.map((w) => (
-              <option key={w._id} value={w._id}>
-                {w.name} · {w.sector === "hr" ? "HR" : "Interior design"}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="flex flex-wrap justify-end gap-3">
         <Button variant="outline" asChild>
           <Link href={`${PERSONAL_APP_ORIGIN}/dashboard`}>
             Buka Careerpack pribadi
@@ -331,11 +314,24 @@ function WorkspaceHub() {
             </p>
           </div>
           <Tabs
-            defaultValue="programs"
+            value={view}
+            onValueChange={(next) =>
+              selectWorkspace(selected._id, program?._id, next)
+            }
             key={`${selected._id}:${selected.role}`}
           >
             <TabsList>
+              <TabsTrigger value="overview">Ringkasan</TabsTrigger>
               <TabsTrigger value="programs">Program &amp; kiriman</TabsTrigger>
+              {![
+                "overview",
+                "programs",
+                "members",
+                "notifications",
+                "preferences",
+              ].includes(view) && (
+                <TabsTrigger value={view}>{active?.label}</TabsTrigger>
+              )}
               {manager && <TabsTrigger value="members">Anggota</TabsTrigger>}
               <TabsTrigger value="notifications">
                 Notifikasi{" "}
@@ -345,7 +341,51 @@ function WorkspaceHub() {
               </TabsTrigger>
               <TabsTrigger value="preferences">Pengaturan</TabsTrigger>
             </TabsList>
-            <TabsContent value="programs" className="space-y-4">
+            <TabsContent value="overview" className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Pilih fitur dari navigasi workspace. Bahan yang tampil berasal
+                dari kiriman ke workspace ini; persiapan pribadi tetap terpisah.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {data.programs.map((p) => (
+                  <Button
+                    key={p._id}
+                    variant="outline"
+                    className="h-auto min-h-24 min-w-0 flex-col items-start whitespace-normal p-4 text-left"
+                    onClick={() => selectWorkspace(selected._id, p._id)}
+                  >
+                    <span className="break-words font-semibold">{p.title}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {p.closed ? "Program ditutup" : "Buka program & kiriman"}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+              {data.programs.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Belum ada program di workspace ini.
+                </p>
+              )}
+              {manager && (
+                <Button variant="outline" onClick={() => setProgramOpen(true)}>
+                  <Plus />
+                  Tambah program
+                </Button>
+              )}
+            </TabsContent>
+            <TabsContent
+              value={
+                [
+                  "overview",
+                  "members",
+                  "notifications",
+                  "preferences",
+                ].includes(view)
+                  ? "programs"
+                  : view
+              }
+              className="space-y-4"
+            >
               <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-0 flex-1">
                   <label
@@ -362,7 +402,7 @@ function WorkspaceHub() {
                     id="program-picker"
                     value={program?._id ?? ""}
                     onChange={(e) =>
-                      selectWorkspace(selected._id, e.target.value)
+                      selectWorkspace(selected._id, e.target.value, view)
                     }
                     className="h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm lg:h-9"
                   >
@@ -386,13 +426,34 @@ function WorkspaceHub() {
               </div>
               {program && (
                 <ProgramPanel
-                  key={program._id}
+                  key={`${program._id}:${view}`}
                   program={program}
                   canReview={["owner", "admin", "mentor"].includes(
                     selected.role,
                   )}
                   canManage={!!manager}
+                  entryKeys={workspaceEntryKeys(view)}
+                  initialTab={
+                    view === "review" ||
+                    (workspaceEntryKeys(view) &&
+                      (selected.sector === "hr" ||
+                        selected.kind === "institution") &&
+                      selected.role !== "member")
+                      ? "review"
+                      : "mine"
+                  }
+                  manageHref={workspaceHref(
+                    selected._id,
+                    "programs",
+                    program._id,
+                  )}
                 />
+              )}
+              {!program && (
+                <p className="text-sm text-muted-foreground">
+                  Buat program terlebih dahulu untuk memakai fitur workspace
+                  ini.
+                </p>
               )}
             </TabsContent>
             {manager && (

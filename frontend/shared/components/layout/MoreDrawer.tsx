@@ -22,7 +22,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/shared/lib/utils";
 import { useHapticPress } from "../interactions/MicroInteractions";
-import { PRIMARY_NAV, type NavItem, type MoreAppTile } from "./navConfig";
+import { type NavItem, type MoreAppTile } from "./navConfig";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 import { useVisibleMoreApps } from "@/shared/hooks/useVisibleMoreApps";
 import {
   useUnreadNotifications,
@@ -43,17 +44,20 @@ interface MoreDrawerProps {
 export function MoreDrawer({ open, onOpenChange }: MoreDrawerProps) {
   const router = useRouter();
   const visibleMore = useVisibleMoreApps();
+  const { primary, selected } = useWorkspaceNavigation();
   const unreadBadge = formatUnreadBadge(useUnreadNotifications());
   const [query, setQuery] = useState("");
   const tiles = useMemo(
     () =>
       [
-        ...PRIMARY_NAV.map((m) => ({ ...m, hue: "from-brand-from to-brand-to" })),
+        ...primary.map((m) => ({ ...m, hue: "from-brand-from to-brand-to" })),
         ...visibleMore,
       ].map((m) =>
-        m.id === "notifications" && unreadBadge ? { ...m, badge: unreadBadge } : m,
+        !selected && m.id === "notifications" && unreadBadge
+          ? { ...m, badge: unreadBadge }
+          : m,
       ),
-    [visibleMore, unreadBadge],
+    [primary, selected, visibleMore, unreadBadge],
   );
   const filteredMore = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -76,17 +80,23 @@ export function MoreDrawer({ open, onOpenChange }: MoreDrawerProps) {
     //
     // Height uses dvh so iOS Safari's collapsible address bar doesn't
     // clip the bottom; px cap prevents absurd height on foldables.
-    <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
-      <DrawerContent
-        className="!mt-0 h-[min(92dvh,720px)] rounded-t-3xl border-0 p-0 flex flex-col"
-      >
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      shouldScaleBackground={false}
+    >
+      <DrawerContent className="!mt-0 h-[min(92dvh,720px)] rounded-t-3xl border-0 p-0 flex flex-col">
         <span
           aria-hidden
           className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border"
         />
         <DrawerHeader className="relative border-b border-border pt-2 pb-3 text-center">
-          <DrawerTitle>Semua Fitur</DrawerTitle>
-          <DrawerDescription>Geser ke bawah untuk tutup · pilih menu untuk membuka</DrawerDescription>
+          <DrawerTitle>
+            {selected ? "Fitur workspace" : "Semua Fitur"}
+          </DrawerTitle>
+          <DrawerDescription>
+            Geser ke bawah untuk tutup · pilih menu untuk membuka
+          </DrawerDescription>
           <DrawerClose
             aria-label="Tutup"
             className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -170,7 +180,9 @@ function AccountFooter({ onClose }: { onClose: () => void }) {
   return (
     <footer
       className="border-t border-border bg-background/95 backdrop-blur px-4 py-3 flex items-center gap-3"
-      style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+      style={{
+        paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+      }}
     >
       <Avatar className="h-10 w-10 shrink-0 rounded-lg">
         <AvatarImage src={user?.avatar} alt={name} />
@@ -240,7 +252,11 @@ function InstallBanner({ onAfter }: { onAfter: () => void }) {
             Akses lebih cepat, mode offline, notifikasi push.
           </p>
         </div>
-        <Button size="sm" onClick={handleInstall} className="flex-shrink-0 bg-brand hover:bg-brand">
+        <Button
+          size="sm"
+          onClick={handleInstall}
+          className="flex-shrink-0 bg-brand hover:bg-brand"
+        >
           Pasang
         </Button>
       </div>
@@ -268,7 +284,7 @@ function TileButton({ tile, onClick }: TileButtonProps) {
         className={cn(
           "relative w-14 h-14 text-primary-foreground flex items-center justify-center rounded-[32%]",
           "bg-gradient-to-br shadow-md tap-press",
-          tile.hue
+          tile.hue,
         )}
       >
         <Icon className="w-7 h-7" />

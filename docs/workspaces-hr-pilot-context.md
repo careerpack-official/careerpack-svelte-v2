@@ -55,3 +55,13 @@ Jalankan typecheck, lint, seluruh test, coverage, build, CI branch, review, lalu
 ## Di luar pilot ini
 
 Billing/kontrak white label, SSO institusi, custom branding/domain client, keputusan perekrutan otomatis, sinkronisasi repo HR client, dan merger repositori belum diaktifkan. OpenRouter sistem yang masih 401 membutuhkan kredensial sah; ChatGPT OAuth masih menunggu client ID OpenAI. Status tersebut tidak boleh dinyatakan selesai hanya karena hub workspace tersedia.
+
+## Navigasi workspace — 11 Oktober 2026
+
+Pengguna meminta pemilih workspace di header sidebar dan menu fitur mengikuti workspace aktif. Desktop memakai dropdown di SidebarHeader (tetap dapat dibuka dalam mode ikon); tablet/mobile memakai dropdown yang sama pada header atas. Pemilih pada isi halaman dihilangkan. Pilihan pribadi kembali ke dashboard pribadi; “Kelola workspace” membuka daftar workspace. Identitas aktif di URL harus cocok dengan membership yang dikembalikan server, tanpa penyimpanan data pengguna di localStorage.
+
+Menu pribadi tetap CV/Kalender/Lamaran dan alat Careerpack. Studio interior menampilkan Profil studio, Proyek studio, Portofolio studio, Proposal & kontrak, Dokumen usaha. Institusi menampilkan CV/portofolio peserta, program, branding desainer dan presentasi/moodboard. HR menampilkan CV/portofolio peserta, program HR, dokumen pilihan dan persiapan wawancara. Peran peserta menampilkan CV/portofolio saya dan tidak menampilkan pengelolaan anggota/tinjauan peserta. Pengelolaan anggota hanya owner/admin; tinjauan juga untuk mentor. Admin platform tetap ditandai sebagai alat platform, bukan admin workspace.
+
+Sidebar, navigasi bawah, drawer Lainnya, pencarian fitur, breadcrumb dan tautan notifikasi memakai konfigurasi yang sama. Semua menu fitur organisasi mengarah ke `/dashboard/workspaces?workspace=...&view=...`, mempertahankan program aktif. Halaman fitur menampilkan bagian kiriman pilihan di workspace itu, bukan membuka tabel CV/portofolio/pustaka pribadi sambil mengganti labelnya. Perubahan bahan dilakukan melalui kiriman lengkap dengan persetujuan agar navigasi fitur tidak mengirim ulang field tersembunyi atau membatalkan bahan lain. ACL server dan tiket unduh tetap berlaku; label/menu bukan otorisasi.
+
+Hosting HR terpisah secara eksplisit ditunda pengguna: “Situs HR nanti; pakai pilot di Careerpack dulu.” Perubahan utama dirilis ke Careerpack; clone HR diselaraskan tanpa mengaktifkan hosting, mengubah backend, atau menyentuh repo HR client.
