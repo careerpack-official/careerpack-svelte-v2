@@ -20,7 +20,7 @@ import {
 } from "@/shared/lib/cv-merge";
 import { extractCv, rasterizePdfPages } from "@/shared/lib/cvExtract";
 import { useFileUpload } from "@/shared/hooks/useFileUpload";
-import { notify } from "@/shared/lib/notify";
+import { humanMessage, notify } from "@/shared/lib/notify";
 
 /**
  * The import phase machine.
@@ -106,6 +106,7 @@ export function useCvImportFlow({
   const [phase, setPhase] = useState<Phase>("upload");
   const [source, setSource] = useState<Source | null>(null);
   const [rawText, setRawText] = useState("");
+  const [parseError, setParseError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsedResume | null>(null);
   const [plan, setPlan] = useState<MergePlan | null>(null);
   const [decisions, setDecisions] = useState<Record<string, Side>>({});
@@ -150,6 +151,7 @@ export function useCvImportFlow({
     setPhase("upload");
     setSource(null);
     setRawText("");
+    setParseError(null);
     setParsed(null);
     setPlan(null);
     setDecisions({});
@@ -253,6 +255,7 @@ export function useCvImportFlow({
     async (args: { text?: string; imagePages?: string[] }, next: Source) => {
       const run = runRef.current;
       setSource(next);
+      setParseError(null);
       setPhase("parsing");
       try {
         const resume = await parseResume(args);
@@ -266,6 +269,7 @@ export function useCvImportFlow({
         buildPlanFrom(resume, null, next.kind === "manual" ? "" : stemOf(next.name));
       } catch (err) {
         if (run !== runRef.current) return;
+        setParseError(humanMessage(err, "Gagal membaca CV. Coba lagi."));
         notify.fromError(err, "Gagal membaca CV");
         setPhase(args.text ? "review-text" : "upload");
       } finally {
@@ -303,6 +307,7 @@ export function useCvImportFlow({
       setOcrOffer(false);
       setOcrRunning(false);
       setRawText("");
+      setParseError(null);
       setParsed(null);
       setPlan(null);
       setProgress(null);
@@ -512,6 +517,7 @@ export function useCvImportFlow({
     phase,
     source,
     rawText,
+    parseError,
     setRawText,
     plan,
     conflicts,
