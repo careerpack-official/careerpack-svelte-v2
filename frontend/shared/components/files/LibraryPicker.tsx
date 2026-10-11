@@ -112,10 +112,10 @@ export function LibraryPicker({ open, onOpenChange, accept = "any", onPick }: Pr
                       type="button"
                       onClick={() => onPick(f)}
                       className={cn(
-                        "group flex aspect-square w-full flex-col overflow-hidden rounded-lg border-2 border-border bg-card text-left transition-all hover:border-brand",
+                        "group flex min-w-0 w-full flex-col overflow-hidden rounded-lg border-2 border-border bg-card text-left transition-all hover:border-brand",
                       )}
                     >
-                      <div className="relative flex-1 bg-muted">
+                      <div className="relative aspect-video w-full shrink-0 bg-muted">
                         {isImage && f.url ? (
                           <Image
                             src={f.url}
@@ -136,8 +136,8 @@ export function LibraryPicker({ open, onOpenChange, accept = "any", onPick }: Pr
                           </Badge>
                         )}
                       </div>
-                      <div className="p-1.5">
-                        <p className="truncate text-xs font-medium">{f.fileName}</p>
+                      <div className="w-full min-w-0 p-1.5">
+                        <p className="break-all text-xs font-medium">{f.fileName}</p>
                       </div>
                     </button>
                   </li>
