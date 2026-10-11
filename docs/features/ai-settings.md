@@ -6,6 +6,16 @@
 
 Per-user AI provider config — user pilih provider (OpenAI / OpenRouter / Groq / Azure / dll), model default, base URL, dan simpan API key sendiri. Override env backend default untuk user yang bring-own-key. Admin bisa set `globalAISettings` (singleton fallback) dan `aiUserModelOverrides` (per-user model override mempertahankan provider+key global).
 
+### OAuth admin dan pengguna — 11 Oktober 2026
+
+OpenRouter OAuth tersedia pada kedua form. `startOAuthConnect({provider, scope})` mengikat owner, `state`, PKCE dan scope (`user` atau `global`) ke transaksi sepuluh menit. Scope global memerlukan admin terverifikasi saat memulai dan menyelesaikan. Callback membawa `code` dan `state`; transaksi dikonsumsi atomik sebelum pertukaran sehingga replay ditolak. Flow lama tanpa state harus diulang setelah deploy.
+
+Koneksi pengguna hanya menulis `aiSettings`; koneksi admin hanya menulis `globalAISettings`. Model yang sudah dipilih pada provider yang sama dipertahankan, override endpoint dibersihkan, dan key disimpan terenkripsi. OAuth tidak memberi saldo gratis: pemakaian dibebankan ke akun OpenRouter yang memberi izin. Memutuskan konfigurasi Careerpack tidak mencabut key di OpenRouter.
+
+`testConnection({scope})` menguji konfigurasi tersimpan yang benar. Pada scope global, key pribadi admin dan model override pengguna dilewati; akses tetap admin-only. Tes dinonaktifkan selama form memiliki perubahan yang belum disimpan. Mengganti provider memerlukan key baru atau OAuth provider itu, sehingga key lama tidak ikut dikirim ke provider lain.
+
+ChatGPT ditampilkan dengan status menunggu persetujuan OpenAI di kedua form. Ini belum menjadi provider OAuth aktif atau bukti penggunaan paket berhasil. Tidak ada client ID yang diterbitkan saat perubahan ini dibuat.
+
 ## Route & Entry
 
 - URL: `/dashboard/ai-settings` (resolve ke `SettingsView` dengan tab AI aktif — bookmark legacy)
@@ -35,7 +45,7 @@ Backend domain: `convex/ai/`. Helper: `convex/_shared/aiProviders.ts` (provider 
 |---|---|
 | List provider spec | `api.ai.queries.listAIProviders` (public, read-only) |
 | Mulai OAuth connect | `api.ai.oauth.startOAuthConnect` → `{ url }` (mutation: mint verifier, park di `aiOAuthFlows`) |
-| Selesaikan OAuth connect | `api.ai.oauth.finishOAuthConnect` (action: tukar code, tulis key terenkripsi ke `aiSettings` caller) |
+| Selesaikan OAuth connect | `api.ai.oauth.finishOAuthConnect` (action: verifikasi state, tukar code, tulis key terenkripsi ke scope transaksi) |
 | Fetch user config (masked) | `api.ai.queries.getMyAISettings` |
 | Save config | `api.ai.mutations.setMyAISettings` |
 | Toggle enabled | `api.ai.mutations.toggleAIEnabled` |
@@ -159,17 +169,10 @@ if (flow?.handoff === "redirect") {          // render tombol <flow.label>
 }
 ```
 
-Konsumer pertamanya `AIConnectCard` (`frontend/slices/settings/components/`),
-dirender di tab AI Setelan **di atas** form key manual — id provider tidak
-muncul sekali pun di file itu, jadi provider OAuth berikutnya menumbuhkan satu
-baris sendiri. Hanya `handoff: "redirect"` yang dirender; `paste` / `poll`
-belum punya widget dan tombol yang tidak ke mana-mana lebih buruk daripada
-tidak ada tombol. Halaman callback memantulkan user balik ke
-`/dashboard/settings?ai=<provider|error>`, dibaca `slices/settings/lib/aiConnectResult.ts`.
-
-`AIConfigPanel` (admin) sengaja tidak punya tombol connect: `finishOAuthConnect`
-menulis `aiSettings` **caller**, jadi key bersama di `globalAISettings` tetap
-lewat paste manual.
+`ProviderAuthSection` dirender pada `AIProviderForm` yang dipakai bersama oleh
+pengaturan pengguna dan admin. Hanya `handoff: "redirect"` yang dirender;
+`paste` / `poll` belum punya widget. Callback kembali ke tab AI pengaturan
+pengguna atau admin sesuai scope transaksi yang diverifikasi backend.
 
 ### Menambah provider OAuth = 4 langkah
 
@@ -225,9 +228,9 @@ query) — baris `encv1:` didekripsi, baris plaintext lolos apa adanya.
 ## Catatan Desain
 
 - **Mengapa per-user provider?** Cost isolation — power user pakai credit sendiri (OpenRouter / Groq / Azure), free user pakai quota terbatas dari env default backend.
-- **Key security** — `apiKey` ditulis AES-256-GCM (`_shared/aiCrypto.ts`, prefix `encv1:`) kalau env Convex `AI_CRED_SECRET` ada; tanpa env itu tetap plaintext seperti sebelumnya, dan read path menerima dua-duanya sehingga baris lama tidak dimigrasi. Never echo-back ke client (masked). Ops (set, rotasi, kenapa OAuth connect menolak tanpa env): [deployment.md](../deployment.md) §10.
-- **OAuth connect menolak tanpa `AI_CRED_SECRET`** — key hasil OAuth tidak pernah dilihat user, jadi user tidak bisa merotasi sesuatu yang bocor tanpa dia tahu key itu ada. Paste-key manual tetap boleh plaintext karena user memegang salinannya sendiri.
-- **Connect hanya menulis `aiSettings` caller** — `globalAISettings` tidak tersentuh OAuth; admin yang mau key bersama tetap paste manual di Admin Panel.
+- **Key security** — semua key baru ditulis AES-256-GCM (`_shared/aiCrypto.ts`, prefix `encv1:`) dan memerlukan `AI_CRED_SECRET`. Read path menerima format lama sehingga baris lama tidak harus dimigrasi saat deploy. Key hanya ditampilkan masked ke client.
+- **OAuth connect menolak tanpa `AI_CRED_SECRET`** — key hasil OAuth tidak pernah ditampilkan kepada pengguna. Key manual juga memerlukan enkripsi untuk penulisan baru.
+- **Scope koneksi** — OAuth hanya menulis konfigurasi sesuai scope transaksi. Pengguna biasa tidak dapat memulai atau menyelesaikan koneksi global.
 - **Model list** — `AI_PROVIDERS` tetap otoritatif untuk baseUrl + default; daftar model-nya di-union dengan katalog models.dev yang di-cache singleton `modelCatalog` (`convex/ai/catalog.ts`).
 - **Rate limit tetap enforce** — user dengan API key sendiri tetap kena `AI_RATE_LIMITS["ai:minute"/"ai:day"]` di `rateLimitEvents` supaya infra backend tidak overload.
 - **`globalAISettings` singleton** — admin-managed; default kalau user tidak punya `aiSettings`.
@@ -349,7 +352,7 @@ declare const fullApi: ApiFromModules<{
 - `CONVEX_OPENAI_API_KEY` — provider key
 
 Opsional, dan cuma relevan kalau ikut port OAuth connect:
-- `AI_CRED_SECRET` — tanpa ini key disimpan plaintext (semua tetap jalan) tapi `startOAuthConnect` menolak
+- `AI_CRED_SECRET` — wajib untuk menyimpan key baru, baik manual maupun OAuth; key lama masih terbaca
 - `APP_URL` — origin publik app; dipakai merangkai callback URL (`requireEnv`, jadi absennya = mutation throw)
 
 **Manifest + binder wiring** — N/A (slice tipis, tidak punya manifest).

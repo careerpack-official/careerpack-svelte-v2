@@ -1,6 +1,6 @@
 import { action, type ActionCtx } from "../_generated/server";
-import { v } from "convex/values";
-import { internal } from "../_generated/api";
+import { ConvexError, v } from "convex/values";
+import { api, internal } from "../_generated/api";
 import { activeUserId as getAuthUserId } from "../_shared/authSession";
 import { authError } from "../_shared/auth";
 import { sanitizeAIInput, wrapUserInput } from "../_shared/sanitize";
@@ -40,12 +40,13 @@ async function callAI(
   ctx: ActionCtx,
   fallbackModel: string,
   body: Record<string, unknown>,
+  scope: "user" | "global" = "user",
 ) {
-  const cfg = await resolveAI(ctx, fallbackModel);
+  const cfg = await resolveAI(ctx, fallbackModel, undefined, scope);
   if (!cfg) {
-    throw new Error(
+    throw new ConvexError({ message:
       "Layanan AI belum dikonfigurasi. Atur API key di Setelan → AI atau hubungi admin.",
-    );
+    });
   }
   const payload = { ...body, model: cfg.model };
   const response = await fetchWithTimeout(`${cfg.baseUrl}/chat/completions`, {
@@ -70,6 +71,9 @@ async function callAI(
       message: `AI gateway error (${cfg.source}): ${response.status}${detail ? ` - ${detail.slice(0, 200)}` : ""}`,
       route: `model=${cfg.model} source=${cfg.source}`,
     });
+    if (scope === "global") {
+      throw new ConvexError({ message: `Koneksi AI default gagal (${response.status}). Periksa koneksi akun, kunci, dan saldo di Admin → AI.` });
+    }
     throw aiUnavailableError(response.status, cfg.source);
   }
   return response.json();
@@ -800,8 +804,10 @@ export const listOpenRouterModels = action({
 });
 
 export const testConnection = action({
-  args: {},
-  handler: async (ctx) => {
+  args: { scope: v.optional(v.union(v.literal("user"), v.literal("global"))) },
+  returns: v.object({ ok: v.boolean(), reply: v.string() }),
+  handler: async (ctx, { scope = "user" }) => {
+    if (scope === "global") await ctx.runQuery(api.ai.queries.getGlobalAISettings, {});
     await requireQuota(ctx);
     const data = await callAI(ctx, "gpt-4.1-nano", {
       messages: [
@@ -810,9 +816,9 @@ export const testConnection = action({
       ],
       max_tokens: 5,
       temperature: 0,
-    });
-    const reply = data?.choices?.[0]?.message?.content ?? "";
-    return { ok: true, reply: String(reply).slice(0, 80) };
+    }, scope);
+    const reply = aiContent(data);
+    return { ok: true, reply: reply.slice(0, 80) };
   },
 });
 

@@ -58,6 +58,7 @@ export function SettingsView() {
   // useSearchParams would push the whole dashboard route into a Suspense
   // bailout for one string read once.
   useEffect(() => {
+    if (window.location.pathname.endsWith("/ai-settings")) setTab("ai");
     const result = parseAIConnectResult(window.location.search);
     if (!result) return;
     setTab("ai");

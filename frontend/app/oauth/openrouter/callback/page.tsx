@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Menyambungkan OpenRouter | CareerPack",
   // The URL carries a live authorization code.
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 export default async function OpenRouterCallbackPage({
@@ -23,5 +24,6 @@ export default async function OpenRouterCallbackPage({
 }) {
   const sp = await searchParams;
   const code = typeof sp.code === "string" ? sp.code : "";
-  return <OpenRouterCallback code={code} />;
+  const state = typeof sp.state === "string" ? sp.state : "";
+  return <OpenRouterCallback code={code} oauthState={state} />;
 }

@@ -145,6 +145,7 @@ export function AIProviderForm({ scope, connectFailed }: AIProviderFormProps) {
       ...prev,
       provider: next,
       model: nextSpec?.defaultModel ?? "",
+      apiKey: "",
       // A pasted endpoint only means something for the provider it was typed
       // for; keep it only where the provider ships none of its own.
       baseUrl: nextSpec?.baseUrl ? "" : prev.baseUrl,
@@ -153,7 +154,7 @@ export function AIProviderForm({ scope, connectFailed }: AIProviderFormProps) {
   };
 
   const onSave = async () => {
-    if (affordances.apiKey && !form.apiKey.trim() && !current?.hasKey) {
+    if (affordances.apiKey && !form.apiKey.trim() && !(current?.hasKey && current.provider === form.provider)) {
       notify.validation("API key belum diisi");
       return;
     }
@@ -195,7 +196,7 @@ export function AIProviderForm({ scope, connectFailed }: AIProviderFormProps) {
   const onTest = async () => {
     setTesting(true);
     try {
-      const res = await test({});
+      const res = await test({ scope });
       notify.success(`Koneksi OK: ${res.reply || "balas kosong"}`);
     } catch (err) {
       notify.fromError(err, "Tes koneksi gagal");
@@ -309,7 +310,7 @@ export function AIProviderForm({ scope, connectFailed }: AIProviderFormProps) {
             disabled={saving}
           />
         )}
-        <Button variant="outline" onClick={() => void onTest()} disabled={testing || !current?.enabled}>
+        <Button variant="outline" onClick={() => void onTest()} disabled={testing || dirty || !current?.enabled}>
           <Wand2 />
           {testing ? "Menguji…" : "Tes Koneksi"}
         </Button>
@@ -317,6 +318,22 @@ export function AIProviderForm({ scope, connectFailed }: AIProviderFormProps) {
           {saving ? "Menyimpan…" : "Simpan"}
         </Button>
       </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">ChatGPT</CardTitle>
+          <CardDescription>
+            Login dan penggunaan paket ChatGPT di Careerpack sedang menunggu persetujuan OpenAI.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button variant="outline" disabled>Masuk dengan ChatGPT · segera hadir</Button>
+          <p className="text-xs text-muted-foreground">
+            {scope === "global"
+              ? "Pengajuan akses sudah dikirim. Koneksi ChatGPT akan tersedia setelah izin integrasi disetujui."
+              : "Setelah tersedia, Anda bisa menghubungkan akun ChatGPT dan mengizinkan penggunaan paket Anda untuk AI."}
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
