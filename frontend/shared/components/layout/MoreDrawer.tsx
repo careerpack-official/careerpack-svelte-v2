@@ -99,7 +99,7 @@ export function MoreDrawer({ open, onOpenChange }: MoreDrawerProps) {
           </DrawerDescription>
           <DrawerClose
             aria-label="Tutup"
-            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute right-3 top-3 inline-flex size-[44px] items-center justify-center rounded-md text-muted-foreground opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="h-4 w-4" />
           </DrawerClose>
@@ -307,3 +307,4 @@ function TileButton({ tile, onClick }: TileButtonProps) {
     </button>
   );
 }
+
