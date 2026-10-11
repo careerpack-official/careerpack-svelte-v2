@@ -111,7 +111,7 @@ export function ProviderAuthSection({
                   size="sm"
                   label="Putuskan"
                   title={`Putuskan ${spec?.label}?`}
-                  description={`Provider, model, dan kunci tersimpan dihapus dari akun Anda, dan fitur AI kembali memakai default sistem. Kunci di sisi ${spec?.label} tidak ikut dicabut — hapus sendiri di dashboard mereka kalau perlu.`}
+                  description={`${scope === "global" ? "Provider, model, dan kunci default sistem dihapus. Pengguna tanpa koneksi pribadi kehilangan akses ke default ini." : "Provider, model, dan kunci tersimpan dihapus dari akun Anda, dan fitur AI kembali memakai default sistem."} Kunci di sisi ${spec?.label} tidak ikut dicabut — hapus sendiri di dashboard mereka kalau perlu.`}
                   confirmLabel="Ya, putuskan"
                   onConfirm={onDisconnect}
                 />
