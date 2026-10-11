@@ -8,6 +8,7 @@ A complete map of the project context. Every document is self-contained — each
 |---|---|
 | **[ai-onboarding.md](./ai-onboarding.md)** | **A new AI agent entering the repo — 4-min orientation** |
 | [architecture.md](./architecture.md) | Understanding the repo layout, Next.js routing, slice pattern |
+| [monetization-and-workspaces.md](./monetization-and-workspaces.md) | Free individual access, voluntary DOKU support, institution pilots, and workspace plan |
 | [backend.md](./backend.md) | Understanding the Convex schema + every query/mutation/action |
 | [auth.md](./auth.md) | Understanding the login / sign-up / guard flow |
 | [development.md](./development.md) | Local setup, env, scripts, testing, conventions |

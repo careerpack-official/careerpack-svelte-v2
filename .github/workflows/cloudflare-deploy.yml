@@ -23,6 +23,7 @@ jobs:
       NEXT_PUBLIC_SITE_URL: https://careerpack.org
       APP_URL: https://careerpack.org
       NEXT_PUBLIC_BUILD_ID: ${{ github.sha }}
+      NEXT_PUBLIC_DOKU_DONATION_URL: ${{ vars.NEXT_PUBLIC_DOKU_DONATION_URL }}
     steps:
       - uses: actions/checkout@v4
         with:
