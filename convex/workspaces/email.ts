@@ -12,6 +12,7 @@ const mailRecipient = v.union(
     workspaceId: v.id("workspaces"),
     name: v.string(),
     programId: v.optional(v.id("workspacePrograms")),
+    targetView: v.optional(v.literal("schedules")),
   }),
 );
 export const inviteRecipient = internalQuery({
@@ -75,6 +76,7 @@ export const updateRecipient = internalQuery({
       to: user.email,
       workspaceId: row.workspaceId,
       programId: row.programId,
+      ...(row.targetView ? { targetView: row.targetView } : {}),
       name: workspace.name,
     };
   },
@@ -182,6 +184,7 @@ export const sendUpdate = internalAction({
     try {
       const url = appUrl();
       url.searchParams.set("workspace", recipient.workspaceId);
+      if (recipient.targetView) url.searchParams.set("view", recipient.targetView);
       if (recipient.programId)
         url.searchParams.set("program", recipient.programId);
       if (

@@ -152,14 +152,14 @@ describe("workspace navigation scope", () => {
     expect(nav.primary.map((item) => item.label)).toEqual([
       "Ringkasan workspace",
       "CV peserta",
-      "Program HR",
+      "Lowongan",
     ]);
     for (const item of [...nav.primary, ...nav.more].filter(
       (item) => !["help", "admin-panel"].includes(item.id),
     )) {
       const url = new URL(item.href, "https://careerpack.org");
-      expect(url.pathname).toBe("/dashboard/workspaces");
-      expect(url.searchParams.get("workspace")).toBe(hr._id);
+      expect(url.pathname).toContain(`/dashboard/workspaces/${hr._id}/`);
+      expect(url.searchParams.has("workspace")).toBe(false);
       expect(url.searchParams.get("program")).toBe("program-a");
     }
     expect(PRIMARY_NAV.find((item) => item.id === "cv")?.href).toBe(
@@ -167,14 +167,14 @@ describe("workspace navigation scope", () => {
     );
     expect(
       nav.more.some(
-        (item) => item.id === "calculator" || item.id === "matcher",
+        (item) => item.id === "matcher",
       ),
     ).toBe(false);
   });
   it("maps the studio to profile, portfolio, proposals/contracts and business documents", () => {
     const nav = workspaceNavigation({ ...hr, sector: "interior-design" });
     expect(nav.primary[1].label).toBe("Profil studio");
-    expect(nav.more.map((item) => item.label)).toContain("Proposal & kontrak");
+    expect(nav.more.map((item) => item.label)).toContain("Proposal");
     expect(nav.more.map((item) => item.label)).toContain("Dokumen usaha");
     expect(workspaceEntryKeys("proposal-contract")).toEqual([
       "proposal",
@@ -207,7 +207,7 @@ describe("workspace navigation scope", () => {
       workspaceHref("x&workspace=other", "cv", "p?"),
       "https://careerpack.org",
     );
-    expect(url.searchParams.get("workspace")).toBe("x&workspace=other");
-    expect(url.searchParams.getAll("workspace")).toHaveLength(1);
+    expect(decodeURIComponent(url.pathname.split("/")[3])).toBe("x&workspace=other");
+    expect(url.searchParams.getAll("workspace")).toHaveLength(0);
   });
 });

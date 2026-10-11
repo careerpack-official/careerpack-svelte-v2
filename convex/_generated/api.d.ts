@@ -224,8 +224,11 @@ import type * as workspaces_email from "../workspaces/email.js";
 import type * as workspaces_emailVerification from "../workspaces/emailVerification.js";
 import type * as workspaces_fileRead from "../workspaces/fileRead.js";
 import type * as workspaces_lib from "../workspaces/lib.js";
+import type * as workspaces_manage from "../workspaces/manage.js";
+import type * as workspaces_modules_catalog from "../workspaces/modules/catalog.js";
 import type * as workspaces_mutations from "../workspaces/mutations.js";
 import type * as workspaces_queries from "../workspaces/queries.js";
+import type * as workspaces_records from "../workspaces/records.js";
 
 import type {
   ApiFromModules,
@@ -450,8 +453,11 @@ declare const fullApi: ApiFromModules<{
   "workspaces/emailVerification": typeof workspaces_emailVerification;
   "workspaces/fileRead": typeof workspaces_fileRead;
   "workspaces/lib": typeof workspaces_lib;
+  "workspaces/manage": typeof workspaces_manage;
+  "workspaces/modules/catalog": typeof workspaces_modules_catalog;
   "workspaces/mutations": typeof workspaces_mutations;
   "workspaces/queries": typeof workspaces_queries;
+  "workspaces/records": typeof workspaces_records;
 }>;
 
 /**

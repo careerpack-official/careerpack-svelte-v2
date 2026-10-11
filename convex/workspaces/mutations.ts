@@ -1,13 +1,14 @@
 import { v } from "convex/values";
 import { mutation, internalMutation } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { authError, requireUser } from "../_shared/auth";
 import { randomToken, sha256Base64Url } from "../_shared/pkce";
 import { enforceRateLimit } from "../_shared/rateLimit";
 import {
   access,
+  notifyMember,
   activeSubmission,
   MANAGERS,
   MAX_MEMBERS,
@@ -29,29 +30,6 @@ import {
   submissionEntry,
 } from "./schema";
 import { revokeMembership } from "./cleanup";
-
-async function notifyMember(
-  ctx: MutationCtx,
-  member: Doc<"workspaceMembers">,
-  programId: Id<"workspacePrograms">,
-  title: string,
-) {
-  if (!member.inApp && !member.email) return;
-  const id = await ctx.db.insert("workspaceNotifications", {
-    workspaceId: member.workspaceId,
-    memberId: member._id,
-    userId: member.userId,
-    programId,
-    title,
-    read: false,
-    createdAt: Date.now(),
-    delivery: member.email ? "pending" : "manual",
-  });
-  if (member.email)
-    await ctx.scheduler.runAfter(0, internal.workspaces.email.sendUpdate, {
-      notificationId: id,
-    });
-}
 
 async function membershipRoom(
   ctx: MutationCtx,
@@ -159,7 +137,12 @@ export const setProgramClosed = mutation({
   args: { programId: v.id("workspacePrograms"), closed: v.boolean() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await programAccess(ctx, args.programId, MANAGERS);
+    const { workspace } = await programAccess(ctx, args.programId, MANAGERS);
+    if (workspace.sector === "hr") {
+      const records = await ctx.db.query("workspaceRecords").withIndex("by_workspace_resource", q => q.eq("workspaceId", workspace._id).eq("resource", "vacancies")).take(200);
+      const vacancy = records.find(row => row.programId === args.programId);
+      if (vacancy) await ctx.db.patch(vacancy._id, { status: args.closed ? "Ditutup" : "Terbuka", updatedAt: Date.now() });
+    }
     await ctx.db.patch(args.programId, { closed: args.closed });
     return null;
   },

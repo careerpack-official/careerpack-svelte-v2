@@ -27,6 +27,13 @@ import { CreateWorkspace, CreateProgram } from "./WorkspaceForms";
 import { ProgramPanel } from "./ProgramPanel";
 import { MembersPanel } from "./MembersPanel";
 import {
+  ArchivedWorkspaces,
+  OperationsOverview,
+  OperationsPanel,
+  WorkspaceSettings,
+} from "./OperationsPanel";
+import { resourcesFor } from "../../../../convex/workspaces/modules/catalog";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
@@ -45,7 +52,8 @@ export function WorkspaceSlice() {
 function WorkspaceHub() {
   const router = useRouter();
   const search = useSearchParams();
-  const { mine, selected, active, view } = useWorkspaceNavigation();
+  const { mine, selected, active, view, requestedWorkspace } =
+    useWorkspaceNavigation();
   const configuration = useQuery(api.workspaces.queries.configuration);
   const notices = useQuery(api.workspaces.queries.notifications);
   const accept = useMutation(api.workspaces.mutations.acceptInvite);
@@ -75,6 +83,11 @@ function WorkspaceHub() {
     data?.programs.find((p) => p._id === search.get("program")) ??
     data?.programs[0];
   const manager = selected && ["owner", "admin"].includes(selected.role);
+  const operational =
+    selected && (selected.kind === "business" || selected.sector === "hr");
+  const resource = selected
+    ? resourcesFor(selected.kind, selected.sector).find((r) => r.key === view)
+    : undefined;
   const relevantNotices =
     notices?.filter((n) => !selected || n.workspaceId === selected._id) ?? [];
   function selectWorkspace(
@@ -90,14 +103,19 @@ function WorkspaceHub() {
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground">
-            {IS_HR_PILOT ? "Careerpack HR · Pilot terpisah" : "Careerpack"}
+            {selected
+              ? `${selected.sector === "hr" ? "Careerpack HR" : selected.kind === "business" ? "Careerpack Studio" : "Careerpack Institusi"} · ${selected.name}`
+              : IS_HR_PILOT
+                ? "Careerpack HR · Pilot terpisah"
+                : "Careerpack"}
           </p>
           <h1 className="text-2xl font-semibold">
             {selected ? active?.label : "Workspace"}
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Institusi, bisnis, dan HR memakai area bersama. Persiapan karier
-            pribadi tetap berada di Careerpack Anda.
+            {selected
+              ? "Area kerja organisasi ini. Akun dan persiapan karier pribadi berada di Careerpack."
+              : "Buat, kelola, atau pulihkan workspace institusi dan bisnis Anda."}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
@@ -253,13 +271,14 @@ function WorkspaceHub() {
           </Link>
         </Button>
       </div>
-      {search.get("workspace") && !selected && (
+      {requestedWorkspace && !selected && (
         <p role="status" className="text-sm text-muted-foreground">
           Workspace ini tidak tersedia untuk akun Anda.
         </p>
       )}
       {!selected ? (
         <>
+          <ArchivedWorkspaces />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {mine.map((w) => (
               <button
@@ -291,7 +310,7 @@ function WorkspaceHub() {
               onOpen={async (n) => {
                 try {
                   await read({ id: n._id });
-                  selectWorkspace(n.workspaceId, n.programId);
+                  selectWorkspace(n.workspaceId, n.programId, n.targetView ?? "programs");
                 } catch (e) {
                   notify.fromError(e, "Gagal membuka notifikasi");
                 }
@@ -320,142 +339,178 @@ function WorkspaceHub() {
             }
             key={`${selected._id}:${selected.role}`}
           >
-            <TabsList>
-              <TabsTrigger value="overview">Ringkasan</TabsTrigger>
-              <TabsTrigger value="programs">Program &amp; kiriman</TabsTrigger>
-              {![
-                "overview",
-                "programs",
-                "members",
-                "notifications",
-                "preferences",
-              ].includes(view) && (
-                <TabsTrigger value={view}>{active?.label}</TabsTrigger>
-              )}
-              {manager && <TabsTrigger value="members">Anggota</TabsTrigger>}
-              <TabsTrigger value="notifications">
-                Notifikasi{" "}
-                {relevantNotices.filter((n) => !n.read).length > 0
-                  ? `(${relevantNotices.filter((n) => !n.read).length})`
-                  : ""}
-              </TabsTrigger>
-              <TabsTrigger value="preferences">Pengaturan</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview" className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Pilih fitur dari navigasi workspace. Bahan yang tampil berasal
-                dari kiriman ke workspace ini; persiapan pribadi tetap terpisah.
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {data.programs.map((p) => (
-                  <Button
-                    key={p._id}
-                    variant="outline"
-                    className="h-auto min-h-24 min-w-0 flex-col items-start whitespace-normal p-4 text-left"
-                    onClick={() => selectWorkspace(selected._id, p._id)}
-                  >
-                    <span className="break-words font-semibold">{p.title}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {p.closed ? "Program ditutup" : "Buka program & kiriman"}
-                    </span>
-                  </Button>
-                ))}
-              </div>
-              {data.programs.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Belum ada program di workspace ini.
-                </p>
-              )}
-              {manager && (
-                <Button variant="outline" onClick={() => setProgramOpen(true)}>
-                  <Plus />
-                  Tambah program
-                </Button>
-              )}
-            </TabsContent>
-            <TabsContent
-              value={
-                [
+            {!operational && (
+              <TabsList>
+                <TabsTrigger value="overview">Ringkasan</TabsTrigger>
+                <TabsTrigger value="programs">
+                  Program &amp; kiriman
+                </TabsTrigger>
+                {![
                   "overview",
+                  "programs",
                   "members",
                   "notifications",
                   "preferences",
-                ].includes(view)
-                  ? "programs"
-                  : view
-              }
-              className="space-y-4"
-            >
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="min-w-0 flex-1">
-                  <label
-                    htmlFor="program-picker"
-                    className="mb-2 block text-sm font-medium"
-                  >
-                    {selected.sector === "hr"
-                      ? "Program peserta HR"
-                      : selected.kind === "institution"
-                        ? "Program peserta"
-                        : "Proyek kesiapan bisnis"}
-                  </label>
-                  <select
-                    id="program-picker"
-                    value={program?._id ?? ""}
-                    onChange={(e) =>
-                      selectWorkspace(selected._id, e.target.value, view)
-                    }
-                    className="h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm lg:h-9"
-                  >
-                    {data.programs.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.title}
-                        {p.closed ? " · ditutup" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {manager && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setProgramOpen(true)}
-                  >
-                    <Plus />
-                    Tambah program
-                  </Button>
+                ].includes(view) && (
+                  <TabsTrigger value={view}>{active?.label}</TabsTrigger>
                 )}
-              </div>
-              {program && (
-                <ProgramPanel
-                  key={`${program._id}:${view}`}
-                  program={program}
-                  canReview={["owner", "admin", "mentor"].includes(
-                    selected.role,
+                {manager && <TabsTrigger value="members">Anggota</TabsTrigger>}
+                <TabsTrigger value="notifications">
+                  Notifikasi{" "}
+                  {relevantNotices.filter((n) => !n.read).length > 0
+                    ? `(${relevantNotices.filter((n) => !n.read).length})`
+                    : ""}
+                </TabsTrigger>
+                <TabsTrigger value="preferences">Pengaturan</TabsTrigger>
+              </TabsList>
+            )}
+            <TabsContent value="overview" className="space-y-4">
+              {operational ? (
+                <OperationsOverview workspace={selected} />
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Pilih fitur dari navigasi workspace. Bahan yang tampil
+                    berasal dari kiriman ke workspace ini; persiapan pribadi
+                    tetap terpisah.
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {data.programs.map((p) => (
+                      <Button
+                        key={p._id}
+                        variant="outline"
+                        className="h-auto min-h-24 min-w-0 flex-col items-start whitespace-normal p-4 text-left"
+                        onClick={() => selectWorkspace(selected._id, p._id)}
+                      >
+                        <span className="break-words font-semibold">
+                          {p.title}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {p.closed
+                            ? "Program ditutup"
+                            : "Buka program & kiriman"}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                  {data.programs.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Belum ada program di workspace ini.
+                    </p>
                   )}
-                  canManage={!!manager}
-                  entryKeys={workspaceEntryKeys(view)}
-                  initialTab={
-                    view === "review" ||
-                    (workspaceEntryKeys(view) &&
-                      (selected.sector === "hr" ||
-                        selected.kind === "institution") &&
-                      selected.role !== "member")
-                      ? "review"
-                      : "mine"
-                  }
-                  manageHref={workspaceHref(
-                    selected._id,
-                    "programs",
-                    program._id,
+                  {manager && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setProgramOpen(true)}
+                    >
+                      <Plus />
+                      Tambah program
+                    </Button>
                   )}
-                />
-              )}
-              {!program && (
-                <p className="text-sm text-muted-foreground">
-                  Buat program terlebih dahulu untuk memakai fitur workspace
-                  ini.
-                </p>
+                </>
               )}
             </TabsContent>
+            {resource && (
+              <TabsContent value={view}>
+                <OperationsPanel
+                  key={`${selected._id}:${view}`}
+                  workspace={selected}
+                  spec={resource}
+                />
+              </TabsContent>
+            )}
+            <TabsContent value="pricing">
+              <WorkspaceSettings
+                key={selected._id}
+                workspace={selected}
+                onArchived={() => router.push("/dashboard/workspaces")}
+              />
+            </TabsContent>
+            {!resource && view !== "pricing" && (
+              <TabsContent
+                value={
+                  [
+                    "overview",
+                    "members",
+                    "notifications",
+                    "preferences",
+                  ].includes(view)
+                    ? "programs"
+                    : view
+                }
+                className="space-y-4"
+              >
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="min-w-0 flex-1">
+                    <label
+                      htmlFor="program-picker"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      {selected.sector === "hr"
+                        ? "Program peserta HR"
+                        : selected.kind === "institution"
+                          ? "Program peserta"
+                          : "Proyek kesiapan bisnis"}
+                    </label>
+                    <select
+                      id="program-picker"
+                      value={program?._id ?? ""}
+                      onChange={(e) =>
+                        selectWorkspace(selected._id, e.target.value, view)
+                      }
+                      className="h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm lg:h-9"
+                    >
+                      {data.programs.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.title}
+                          {p.closed ? " · ditutup" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {manager && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setProgramOpen(true)}
+                    >
+                      <Plus />
+                      Tambah program
+                    </Button>
+                  )}
+                </div>
+                {program && (
+                  <ProgramPanel
+                    key={`${program._id}:${view}`}
+                    program={program}
+                    canReview={["owner", "admin", "mentor"].includes(
+                      selected.role,
+                    )}
+                    canManage={!!manager}
+                    entryKeys={workspaceEntryKeys(view)}
+                    initialTab={
+                      view === "review" ||
+                      (workspaceEntryKeys(view) &&
+                        (selected.sector === "hr" ||
+                          selected.kind === "institution") &&
+                        selected.role !== "member")
+                        ? "review"
+                        : "mine"
+                    }
+                    manageHref={workspaceHref(
+                      selected._id,
+                      "programs",
+                      program._id,
+                    )}
+                  />
+                )}
+                {!program && (
+                  <p className="text-sm text-muted-foreground">
+                    Buat program terlebih dahulu untuk memakai fitur workspace
+                    ini.
+                  </p>
+                )}
+              </TabsContent>
+            )}
             {manager && (
               <TabsContent value="members">
                 <MembersPanel
@@ -472,7 +527,7 @@ function WorkspaceHub() {
                 onOpen={async (n) => {
                   try {
                     await read({ id: n._id });
-                    selectWorkspace(n.workspaceId, n.programId);
+                    selectWorkspace(n.workspaceId, n.programId, n.targetView ?? "programs");
                   } catch (e) {
                     notify.fromError(e, "Gagal membuka notifikasi");
                   }
@@ -480,6 +535,11 @@ function WorkspaceHub() {
               />
             </TabsContent>
             <TabsContent value="preferences">
+              <WorkspaceSettings
+                key={selected._id}
+                workspace={selected}
+                onArchived={() => router.push("/dashboard/workspaces")}
+              />
               <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-6">
                 <h3 className="font-semibold">
                   Notifikasi untuk akun Anda di workspace ini
