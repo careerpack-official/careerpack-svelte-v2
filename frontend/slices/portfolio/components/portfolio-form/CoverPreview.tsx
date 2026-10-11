@@ -1,14 +1,17 @@
 import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 import { cn } from "@/shared/lib/utils";
 import type { PortfolioFormValues } from "../../types";
 
 export function CoverPreview({ values }: { values: PortfolioFormValues }) {
   const first = values.media[0];
-  if (first?.url && first.kind === "image") {
+  const url = useQuery(api.files.queries.getFileUrl, first?.kind === "image" ? { storageId: first.storageId } : "skip");
+  if (url && first?.kind === "image") {
     return (
       <div className="relative h-28 overflow-hidden rounded-lg bg-muted">
         <Image
-          src={first.url}
+          src={url}
           alt="Cover portofolio"
           fill
           unoptimized
