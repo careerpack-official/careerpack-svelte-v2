@@ -5,37 +5,76 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const search = vi.hoisted(() => ({ query: "", unread: 0 }));
 vi.mock("react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react")>();
-  return { ...actual, useState: (initial: unknown) => [initial === "" ? search.query : initial, vi.fn()] };
+  return {
+    ...actual,
+    useState: (initial: unknown) => [
+      initial === "" ? search.query : initial,
+      vi.fn(),
+    ],
+  };
 });
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/shared/components/ui/drawer", () => {
-  const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children);
-  return { Drawer: wrapper, DrawerClose: wrapper, DrawerContent: wrapper, DrawerDescription: wrapper, DrawerHeader: wrapper, DrawerTitle: wrapper };
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, null, children);
+  return {
+    Drawer: wrapper,
+    DrawerClose: wrapper,
+    DrawerContent: wrapper,
+    DrawerDescription: wrapper,
+    DrawerHeader: wrapper,
+    DrawerTitle: wrapper,
+  };
 });
 vi.mock("@/shared/components/ui/scroll-area", () => ({
-  ScrollArea: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+  ScrollArea: ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, null, children),
 }));
 vi.mock("@/shared/hooks/useVisibleMoreApps", async () => {
   const { MORE_APPS } = await import("./navConfig");
-  return { useVisibleMoreApps: () => MORE_APPS.filter((tile) => !tile.superAdminOnly) };
+  return {
+    useVisibleMoreApps: () => MORE_APPS.filter((tile) => !tile.superAdminOnly),
+  };
+});
+vi.mock("@/shared/hooks/useWorkspaceNavigation", async () => {
+  const { PRIMARY_NAV } = await import("./navConfig");
+  return {
+    useWorkspaceNavigation: () => ({
+      primary: PRIMARY_NAV,
+      selected: undefined,
+    }),
+  };
 });
 vi.mock("@/shared/hooks/useUnreadNotifications", () => ({
   useUnreadNotifications: () => search.unread,
-  formatUnreadBadge: (count: number) => count ? String(count) : undefined,
+  formatUnreadBadge: (count: number) => (count ? String(count) : undefined),
 }));
-vi.mock("@/shared/hooks/usePWAInstall", () => ({ usePWAInstall: () => ({ canInstall: false }) }));
-vi.mock("@/shared/hooks/useAuth", () => ({ useAuth: () => ({ state: { isAuthenticated: false } }) }));
-vi.mock("../interactions/MicroInteractions", () => ({ useHapticPress: () => ({}) }));
+vi.mock("@/shared/hooks/usePWAInstall", () => ({
+  usePWAInstall: () => ({ canInstall: false }),
+}));
+vi.mock("@/shared/hooks/useAuth", () => ({
+  useAuth: () => ({ state: { isAuthenticated: false } }),
+}));
+vi.mock("../interactions/MicroInteractions", () => ({
+  useHapticPress: () => ({}),
+}));
 
 import { MoreDrawer } from "./MoreDrawer";
-const render = () => renderToStaticMarkup(React.createElement(MoreDrawer, { open: true, onOpenChange: vi.fn() }));
+const render = () =>
+  renderToStaticMarkup(
+    React.createElement(MoreDrawer, { open: true, onOpenChange: vi.fn() }),
+  );
 
 describe("all-features mobile menu", () => {
-  beforeEach(() => { search.query = ""; search.unread = 0; });
+  beforeEach(() => {
+    search.query = "";
+    search.unread = 0;
+  });
 
   it("includes the primary destinations while preserving admin visibility", () => {
     const html = render();
-    for (const label of ["Dashboard", "CV", "Kalender"]) expect(html).toContain(`aria-label="${label}"`);
+    for (const label of ["Dashboard", "CV", "Kalender"])
+      expect(html).toContain(`aria-label="${label}"`);
     expect(html).not.toContain('aria-label="Admin Panel"');
   });
 

@@ -1,15 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 import { AIFab } from "../ai/AIFab";
 import { Ripple, useHapticPress } from "../interactions/MicroInteractions";
-import {
-  PRIMARY_NAV,
-  MORE_NAV_ICON,
-  type NavItem,
-  activeNavForPath,
-} from "./navConfig";
+import { MORE_NAV_ICON, type NavItem } from "./navConfig";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 
 interface BottomNavProps {
   onAITap: () => void;
@@ -23,15 +19,14 @@ interface BottomNavProps {
  * Aktif state dihitung dari `usePathname()` — SSOT lewat navConfig.
  */
 export function BottomNav({ onAITap, aiActive, onMoreTap }: BottomNavProps) {
-  const pathname = usePathname();
   const router = useRouter();
-  const active = activeNavForPath(pathname);
+  const { primary, active } = useWorkspaceNavigation();
 
-  const leftTabs = PRIMARY_NAV.slice(0, 2);
-  const rightTab = PRIMARY_NAV[2];
+  const leftTabs = primary.slice(0, 2);
+  const rightTab = primary[2];
 
   const isActive = (id: string) => active?.id === id;
-  const isMoreActive = !PRIMARY_NAV.some((n) => n.id === active?.id);
+  const isMoreActive = !primary.some((n) => n.id === active?.id);
 
   return (
     <div
@@ -83,7 +78,12 @@ export function BottomNav({ onAITap, aiActive, onMoreTap }: BottomNavProps) {
             onClick={() => router.push(rightTab.href)}
           />
           <NavButton
-            item={{ id: "more", label: "Lainnya", icon: MORE_NAV_ICON, href: "#more" }}
+            item={{
+              id: "more",
+              label: "Lainnya",
+              icon: MORE_NAV_ICON,
+              href: "#more",
+            }}
             active={isMoreActive}
             onClick={onMoreTap}
           />
@@ -118,7 +118,7 @@ function NavButton({ item, active, onClick }: NavButtonProps) {
       className={cn(
         "relative flex flex-col items-center justify-center gap-1 h-full rounded-xl mx-1 px-1",
         "text-xs font-medium transition-colors tap-press",
-        active ? "text-brand" : "text-muted-foreground"
+        active ? "text-brand" : "text-muted-foreground",
       )}
       {...press}
     >
@@ -126,7 +126,7 @@ function NavButton({ item, active, onClick }: NavButtonProps) {
       <span
         className={cn(
           "relative w-10 h-10 rounded-xl flex items-center justify-center",
-          active && "bg-brand-muted"
+          active && "bg-brand-muted",
         )}
       >
         <Icon className={cn("w-5 h-5", active && "animate-badge-bounce")} />

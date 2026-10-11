@@ -16,6 +16,10 @@ import {
   resolveDashboardView,
   activeNavForPath,
   labelForPath,
+  workspaceNavigation,
+  workspaceHref,
+  workspaceEntryKeys,
+  type WorkspaceNavScope,
 } from "./dashboardRegistry";
 
 /**
@@ -132,5 +136,78 @@ describe("dashboardRegistry — derived routing + nav equivalence", () => {
   it("labelForPath resolves a known href", () => {
     expect(labelForPath("/dashboard/cv")).toBe("CV");
     expect(labelForPath("/nope")).toBeNull();
+  });
+});
+
+describe("workspace navigation scope", () => {
+  const hr: WorkspaceNavScope = {
+    _id: "workspace-hr",
+    name: "HR",
+    sector: "hr",
+    kind: "business",
+    role: "owner",
+  };
+  it("keeps every workspace feature on the selected workspace/program, without relabeling personal routes", () => {
+    const nav = workspaceNavigation(hr, "program-a");
+    expect(nav.primary.map((item) => item.label)).toEqual([
+      "Ringkasan workspace",
+      "CV peserta",
+      "Program HR",
+    ]);
+    for (const item of [...nav.primary, ...nav.more].filter(
+      (item) => !["help", "admin-panel"].includes(item.id),
+    )) {
+      const url = new URL(item.href, "https://careerpack.org");
+      expect(url.pathname).toBe("/dashboard/workspaces");
+      expect(url.searchParams.get("workspace")).toBe(hr._id);
+      expect(url.searchParams.get("program")).toBe("program-a");
+    }
+    expect(PRIMARY_NAV.find((item) => item.id === "cv")?.href).toBe(
+      "/dashboard/cv",
+    );
+    expect(
+      nav.more.some(
+        (item) => item.id === "calculator" || item.id === "matcher",
+      ),
+    ).toBe(false);
+  });
+  it("maps the studio to profile, portfolio, proposals/contracts and business documents", () => {
+    const nav = workspaceNavigation({ ...hr, sector: "interior-design" });
+    expect(nav.primary[1].label).toBe("Profil studio");
+    expect(nav.more.map((item) => item.label)).toContain("Proposal & kontrak");
+    expect(nav.more.map((item) => item.label)).toContain("Dokumen usaha");
+    expect(workspaceEntryKeys("proposal-contract")).toEqual([
+      "proposal",
+      "contract",
+    ]);
+    expect(workspaceEntryKeys("programs")).toBeUndefined();
+  });
+  it("exposes participant tools without manager/reviewer menus, and restores reviewer-only menus for mentors", () => {
+    const participant = workspaceNavigation({ ...hr, role: "member" });
+    expect(participant.primary[1].label).toBe("CV saya");
+    expect(
+      participant.more.some((item) =>
+        ["applications", "networking"].includes(item.id),
+      ),
+    ).toBe(false);
+    const mentor = workspaceNavigation({ ...hr, role: "mentor" });
+    expect(mentor.more.some((item) => item.id === "applications")).toBe(true);
+    expect(mentor.more.some((item) => item.id === "networking")).toBe(false);
+  });
+  it("gives institutions designer branding/presentation tools and encodes URL values", () => {
+    const nav = workspaceNavigation({
+      ...hr,
+      sector: "interior-design",
+      kind: "institution",
+    });
+    expect(nav.more.map((item) => item.label)).toEqual(
+      expect.arrayContaining(["Branding desainer", "Presentasi & moodboard"]),
+    );
+    const url = new URL(
+      workspaceHref("x&workspace=other", "cv", "p?"),
+      "https://careerpack.org",
+    );
+    expect(url.searchParams.get("workspace")).toBe("x&workspace=other");
+    expect(url.searchParams.getAll("workspace")).toHaveLength(1);
   });
 });

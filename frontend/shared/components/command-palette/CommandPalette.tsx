@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { Suspense, useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Command,
   CommandDialog,
@@ -12,8 +12,14 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/shared/components/ui/command";
-import { LogOut, Search as SearchIcon, Settings, Moon, Sun } from "lucide-react";
-import { PRIMARY_NAV } from "@/shared/components/layout/navConfig";
+import {
+  LogOut,
+  Search as SearchIcon,
+  Settings,
+  Moon,
+  Sun,
+} from "lucide-react";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 import { useVisibleMoreApps } from "@/shared/hooks/useVisibleMoreApps";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { useTheme } from "next-themes";
@@ -37,11 +43,19 @@ import { ROUTES } from "@/shared/lib/routes";
  * is always in sync with the rest of the app's nav.
  */
 export function CommandPalette() {
+  return (
+    <Suspense fallback={null}>
+      <CommandPaletteContent />
+    </Suspense>
+  );
+}
+
+function CommandPaletteContent() {
   const router = useRouter();
-  const pathname = usePathname();
   const { state, logout } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const visibleMore = useVisibleMoreApps();
+  const { primary, active, selected } = useWorkspaceNavigation();
   const [open, setOpen] = useState(false);
 
   // Shortcut listener — ⌘K / Ctrl+K. Skip when user is typing in an
@@ -70,17 +84,14 @@ export function CommandPalette() {
     };
   }, []);
 
-  const run = useCallback(
-    (fn: () => void) => {
-      return () => {
-        setOpen(false);
-        // Defer one frame so the Dialog closes before routing fires —
-        // avoids a flash of the old page under the fading overlay.
-        requestAnimationFrame(() => fn());
-      };
-    },
-    [],
-  );
+  const run = useCallback((fn: () => void) => {
+    return () => {
+      setOpen(false);
+      // Defer one frame so the Dialog closes before routing fires —
+      // avoids a flash of the old page under the fading overlay.
+      requestAnimationFrame(() => fn());
+    };
+  }, []);
 
   // Render nothing when unauth — palette is a power-user feature for
   // signed-in users. Marketing + login pages don't need it.
@@ -99,7 +110,7 @@ export function CommandPalette() {
           <CommandEmpty>Tidak ada hasil.</CommandEmpty>
 
           <CommandGroup heading="Navigasi">
-            {PRIMARY_NAV.map((item) => {
+            {primary.map((item) => {
               const Icon = item.icon;
               return (
                 <CommandItem
@@ -109,7 +120,7 @@ export function CommandPalette() {
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{item.label}</span>
-                  {pathname === item.href && (
+                  {active?.id === item.id && (
                     <span className="ml-auto text-xs text-muted-foreground">
                       Sekarang
                     </span>
@@ -127,7 +138,7 @@ export function CommandPalette() {
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{item.label}</span>
-                  {pathname === item.href && (
+                  {active?.id === item.id && (
                     <span className="ml-auto text-xs text-muted-foreground">
                       Sekarang
                     </span>
@@ -145,11 +156,13 @@ export function CommandPalette() {
               onSelect={run(() => router.push(ROUTES.dashboard.settings))}
             >
               <Settings className="mr-2 h-4 w-4" />
-              Buka Pengaturan
+              Pengaturan akun pribadi
             </CommandItem>
             <CommandItem
               value="theme mode light dark toggle terang gelap"
-              onSelect={run(() => setTheme(resolvedTheme === "dark" ? "light" : "dark"))}
+              onSelect={run(() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+              )}
             >
               {resolvedTheme === "dark" ? (
                 <Sun className="mr-2 h-4 w-4" />
@@ -158,13 +171,15 @@ export function CommandPalette() {
               )}
               Ganti ke mode {resolvedTheme === "dark" ? "terang" : "gelap"}
             </CommandItem>
-            <CommandItem
-              value="cari pencocok lowongan"
-              onSelect={run(() => router.push(ROUTES.dashboard.matcher))}
-            >
-              <SearchIcon className="mr-2 h-4 w-4" />
-              Cari lowongan yang cocok
-            </CommandItem>
+            {!selected && (
+              <CommandItem
+                value="cari pencocok lowongan"
+                onSelect={run(() => router.push(ROUTES.dashboard.matcher))}
+              >
+                <SearchIcon className="mr-2 h-4 w-4" />
+                Cari lowongan yang cocok
+              </CommandItem>
+            )}
             <CommandItem
               value="logout keluar sign out"
               onSelect={run(() => logout())}

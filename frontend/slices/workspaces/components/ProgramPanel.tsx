@@ -44,10 +44,16 @@ export function ProgramPanel({
   program,
   canReview,
   canManage,
+  entryKeys,
+  initialTab = "mine",
+  manageHref,
 }: {
   program: Program;
   canReview: boolean;
   canManage: boolean;
+  entryKeys?: readonly string[];
+  initialTab?: "mine" | "review";
+  manageHref: string;
 }) {
   const submissions = useQuery(api.workspaces.queries.listSubmissions, {
     programId: program._id,
@@ -120,7 +126,7 @@ export function ProgramPanel({
           </Button>
         )}
       </div>
-      <Tabs defaultValue="mine">
+      <Tabs defaultValue={canReview ? initialTab : "mine"}>
         <TabsList>
           <TabsTrigger value="mine">Kiriman saya</TabsTrigger>
           {canReview && (
@@ -167,6 +173,29 @@ export function ProgramPanel({
           )}
           {submissions === undefined ? (
             <p className="p-4 text-sm text-muted-foreground">Memuat kiriman…</p>
+          ) : entryKeys ? (
+            <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-6">
+              {own ? (
+                <SubmissionEntries
+                  program={program}
+                  submission={own}
+                  entryKeys={entryKeys}
+                  busy={busy}
+                  download={download}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Anda belum membagikan bahan ini ke program workspace ini.
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Pilih dan perbarui bahan melalui kiriman lengkap, lalu setujui
+                pembagiannya. Pustaka pribadi tidak dibagikan otomatis.
+              </p>
+              <Button variant="outline" asChild>
+                <Link href={manageHref}>Atur kiriman lengkap</Link>
+              </Button>
+            </section>
           ) : (
             <SubmissionForm
               key={own?._id ?? "new"}
@@ -204,42 +233,13 @@ export function ProgramPanel({
                         {statusLabel[s.status]}
                       </span>
                     </div>
-                    {s.entries.map((e) => (
-                      <div
-                        key={e.key}
-                        className="min-w-0 border-t border-border pt-3"
-                      >
-                        <p className="text-sm font-medium">
-                          {
-                            program.checklist.find((c) => c.key === e.key)
-                              ?.label
-                          }{" "}
-                          · {e.done ? "Siap" : "Dalam persiapan"}
-                        </p>
-                        {e.note && (
-                          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
-                            {e.note}
-                          </p>
-                        )}
-                        {e.fileId &&
-                          s.files.find((f) => f._id === e.fileId) && (
-                            <Button
-                              className="mt-2"
-                              variant="outline"
-                              disabled={busy}
-                              onClick={() => {
-                                const file = s.files.find(
-                                  (f) => f._id === e.fileId,
-                                );
-                                if (file) void download(s, file._id, file.name);
-                              }}
-                            >
-                              Unduh{" "}
-                              {s.files.find((f) => f._id === e.fileId)?.name}
-                            </Button>
-                          )}
-                      </div>
-                    ))}
+                    <SubmissionEntries
+                      program={program}
+                      submission={s}
+                      entryKeys={entryKeys}
+                      busy={busy}
+                      download={download}
+                    />
                     {s.feedback && (
                       <p className="whitespace-pre-wrap break-words text-sm">
                         Umpan balik: {s.feedback}
@@ -257,6 +257,53 @@ export function ProgramPanel({
       <ReviewDialog submission={reviewing} onClose={() => setReviewing(null)} />
     </section>
   );
+}
+
+function SubmissionEntries({
+  program,
+  submission,
+  entryKeys,
+  busy,
+  download,
+}: {
+  program: Program;
+  submission: Submission;
+  entryKeys?: readonly string[];
+  busy: boolean;
+  download: (
+    submission: Submission,
+    id: Id<"files">,
+    name: string,
+  ) => Promise<void>;
+}) {
+  return submission.entries
+    .filter((entry) => !entryKeys || entryKeys.includes(entry.key))
+    .map((entry) => {
+      const file = submission.files.find((f) => f._id === entry.fileId);
+      return (
+        <div key={entry.key} className="min-w-0 border-t border-border pt-3">
+          <p className="text-sm font-medium">
+            {program.checklist.find((c) => c.key === entry.key)?.label} ·{" "}
+            {entry.done ? "Siap" : "Dalam persiapan"}
+          </p>
+          {entry.note && (
+            <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
+              {entry.note}
+            </p>
+          )}
+          {file && (
+            <Button
+              className="mt-2"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void download(submission, file._id, file.name)}
+            >
+              Unduh {file.name}
+            </Button>
+          )}
+        </div>
+      );
+    });
 }
 
 function SubmissionForm({

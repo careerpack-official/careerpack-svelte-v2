@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { NavMain, type NavMainItem } from "@/shared/components/layout/nav-main";
-import { NavSecondary, type NavSecondaryItem } from "@/shared/components/layout/nav-secondary";
+import {
+  NavSecondary,
+  type NavSecondaryItem,
+} from "@/shared/components/layout/nav-secondary";
 import { NavUser } from "@/shared/components/layout/nav-user";
 import {
   Sidebar,
@@ -17,7 +19,8 @@ import {
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar";
 import { BrandMark } from "../brand/Logo";
-import { PRIMARY_NAV, activeNavForPath } from "./navConfig";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { useWorkspaceNavigation } from "@/shared/hooks/useWorkspaceNavigation";
 import { useVisibleMoreApps } from "@/shared/hooks/useVisibleMoreApps";
 import {
   useUnreadNotifications,
@@ -35,14 +38,13 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
  * CareerPack nav (PRIMARY_NAV, MORE_APPS) + AI assistant CTA di atas.
  */
 export function AppSidebar({ onAITap, aiActive, ...props }: AppSidebarProps) {
-  const pathname = usePathname();
-  const active = activeNavForPath(pathname);
+  const { primary, active, selected } = useWorkspaceNavigation();
   const visibleMore = useVisibleMoreApps();
   // Live unread-count badge for the notifications nav item, injected
   // over its (empty) static registry badge via the existing `badge` prop.
   const unreadBadge = formatUnreadBadge(useUnreadNotifications());
 
-  const mainItems: NavMainItem[] = PRIMARY_NAV.map((n) => ({
+  const mainItems: NavMainItem[] = primary.map((n) => ({
     id: n.id,
     title: n.label,
     url: n.href,
@@ -75,7 +77,10 @@ export function AppSidebar({ onAITap, aiActive, ...props }: AppSidebarProps) {
       title: m.label,
       url: m.href,
       icon: m.icon,
-      badge: m.id === "notifications" ? unreadBadge ?? m.badge : m.badge,
+      badge:
+        !selected && m.id === "notifications"
+          ? (unreadBadge ?? m.badge)
+          : m.badge,
     }));
 
   return (
@@ -87,13 +92,14 @@ export function AppSidebar({ onAITap, aiActive, ...props }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/dashboard">
+              <Link href={primary[0].href}>
                 <BrandMark size={18} />
                 <span className="text-base font-semibold">CareerPack</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain
@@ -105,7 +111,7 @@ export function AppSidebar({ onAITap, aiActive, ...props }: AppSidebarProps) {
         <NavSecondary
           items={moreItems}
           activeId={active?.id}
-          label="Alat Lainnya"
+          label={selected ? "Fitur workspace" : "Alat Lainnya"}
         />
         {systemItems.length > 0 && (
           <NavSecondary
