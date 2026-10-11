@@ -90,7 +90,7 @@ export function MoreDrawer({ open, onOpenChange }: MoreDrawerProps) {
           aria-hidden
           className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border"
         />
-        <DrawerHeader className="relative border-b border-border pt-2 pb-3 text-center">
+        <DrawerHeader className="relative border-b border-border px-[60px] pt-2 pb-3 text-center">
           <DrawerTitle>
             {selected ? "Fitur workspace" : "Semua Fitur"}
           </DrawerTitle>
