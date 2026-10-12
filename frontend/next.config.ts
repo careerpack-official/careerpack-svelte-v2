@@ -76,7 +76,7 @@ const SECURITY_HEADERS = [
       // translate.google.com serves element.js, which then pulls its runtime
       // from translate.googleapis.com and www.gstatic.com. Only ever fetched
       // for a visitor who chose a translation (see shared/lib/googleTranslate.ts).
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://static.cloudflareinsights.com",
       // Google Fonts allowed globally so personal-branding template iframes
       // (rendered via srcDoc) inherit a CSP that lets them load Inter /
       // Cormorant / Manrope. about:srcdoc inherits the parent's CSP and
@@ -99,7 +99,7 @@ const SECURITY_HEADERS = [
       // both were missing here, so every hit was silently CSP-blocked.
       // translate.googleapis.com is where the widget POSTs page text for
       // translation — without it the script loads and silently does nothing.
-      `connect-src 'self' ${CONVEX.http} ${CONVEX.ws} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP} ${CONVEX_WILDCARDS_WS} https://www.google-analytics.com https://www.google.com https://translate.googleapis.com`,
+      `connect-src 'self' ${CONVEX.http} ${CONVEX.ws} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP} ${CONVEX_WILDCARDS_WS} https://www.google-analytics.com https://www.google.com https://translate.googleapis.com https://cloudflareinsights.com`,
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
@@ -130,11 +130,11 @@ const MARKETING_HEADERS = SECURITY_HEADERS.map((header) => {
   return {
     ...header,
     value: header.value
-      // Daily's managed call-object loader evaluates its downloaded bundle.
-      .replace("script-src 'self'", "script-src 'self' 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
+      // Daily evaluates its call bundle and loads audio worklets from blob URLs.
+      .replace("script-src 'self'", "script-src 'self' blob: 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
       .replace("img-src 'self'", "img-src 'self' https://cdn.replica.tavus.io")
       .replace("connect-src 'self'", "connect-src 'self' https://tavusapi.com https://*.daily.co wss://*.daily.co https://*.dailywebrtc.com wss://*.dailywebrtc.com https://*.dailywebrtc.net wss://*.dailywebrtc.net https://challenges.cloudflare.com")
-      + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
+      + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://tavusapi.com https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
   }
 })
 
