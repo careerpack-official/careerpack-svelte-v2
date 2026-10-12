@@ -121,6 +121,22 @@ const SECURITY_HEADERS = [
   },
 ]
 
+// Tavus and its Turnstile challenge run only on the public introduction page.
+const MARKETING_HEADERS = SECURITY_HEADERS.map((header) => {
+  if (header.key === "Permissions-Policy") {
+    return { ...header, value: "camera=(self), microphone=(self), geolocation=(), interest-cohort=()" }
+  }
+  if (header.key !== "Content-Security-Policy") return header
+  return {
+    ...header,
+    value: header.value
+      .replace("script-src 'self'", "script-src 'self' https://unpkg.com https://challenges.cloudflare.com")
+      .replace("img-src 'self'", "img-src 'self' https://cdn.replica.tavus.io")
+      .replace("connect-src 'self'", "connect-src 'self' https://tavusapi.com https://*.daily.co wss://*.daily.co https://challenges.cloudflare.com")
+      + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
+  }
+})
+
 /**
  * Personal-branding HTML templates live in /public/personal-branding/templates/
  * and are framed inside the app's theme renderer. The default
@@ -220,6 +236,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      { source: "/", headers: MARKETING_HEADERS },
       {
         source: "/personal-branding/templates/:path*",
         headers: TEMPLATE_HEADERS,
@@ -228,7 +245,7 @@ const nextConfig: NextConfig = {
         // Negative-lookahead excludes the templates path so the browser
         // doesn't receive two CSP headers (intersection = most restrictive,
         // which would re-add `frame-ancestors 'none'`).
-        source: "/((?!personal-branding/templates/).*)",
+        source: "/((?!personal-branding/templates/).+)",
         headers: SECURITY_HEADERS,
       },
     ]

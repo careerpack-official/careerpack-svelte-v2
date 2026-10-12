@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Script from "next/script";
+import { createElement } from "react";
 
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import {
@@ -197,6 +199,26 @@ export default async function LandingPage() {
       <JsonLd data={SOFTWARE_APPLICATION_LD} />
       <JsonLd data={FAQ_LD} />
       <MarketingLanding>
+        <section aria-labelledby="careerpack-ai-intro" className="border-t border-border bg-background py-16 sm:py-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <h2 id="careerpack-ai-intro" className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Kenalan dengan CareerPack lewat AI.
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Dengar penjelasan tentang CareerPack dan tanyakan fitur yang ingin Anda coba.
+              Percakapan video ini dilayani oleh Tavus; kamera dan mikrofon hanya digunakan dengan izin Anda.
+            </p>
+            <div className="mt-8 aspect-[9/16] w-full overflow-hidden rounded-2xl border border-border bg-card sm:aspect-video">
+              {createElement("tavus-embed", {
+                "deployment-id": "19f829f7-c169-4b17-b79f-179ad97feba6",
+                "aria-label": "Video AI pengenalan CareerPack",
+                style: { display: "block", width: "100%", height: "100%" },
+              })}
+            </div>
+            <noscript>Aktifkan JavaScript untuk membuka video AI pengenalan CareerPack.</noscript>
+          </div>
+          <Script src="https://unpkg.com/@tavus/embed@latest" strategy="afterInteractive" />
+        </section>
         <ShowcaseSection />
         <ToolkitSection />
         <HowItWorksSection />
