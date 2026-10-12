@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Script from "next/script";
-import { createElement } from "react";
+// Aktifkan lagi bersama bagian Tavus di bawah setelah saldo di-topup.
+// import Script from "next/script";
+// import { createElement } from "react";
 
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import {
@@ -199,6 +200,7 @@ export default async function LandingPage() {
       <JsonLd data={SOFTWARE_APPLICATION_LD} />
       <JsonLd data={FAQ_LD} />
       <MarketingLanding>
+        {/* Tavus dinonaktifkan sementara karena limit habis. Buka komentar setelah topup.
         <section aria-labelledby="careerpack-ai-intro" className="border-t border-border bg-background py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <h2 id="careerpack-ai-intro" className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -219,6 +221,7 @@ export default async function LandingPage() {
           </div>
           <Script src="https://unpkg.com/@tavus/embed@latest" strategy="afterInteractive" />
         </section>
+        */}
         <ShowcaseSection />
         <ToolkitSection />
         <HowItWorksSection />
