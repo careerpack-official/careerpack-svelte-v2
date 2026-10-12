@@ -130,9 +130,10 @@ const MARKETING_HEADERS = SECURITY_HEADERS.map((header) => {
   return {
     ...header,
     value: header.value
-      .replace("script-src 'self'", "script-src 'self' https://unpkg.com https://challenges.cloudflare.com")
+      // Daily's managed call-object loader evaluates its downloaded bundle.
+      .replace("script-src 'self'", "script-src 'self' 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
       .replace("img-src 'self'", "img-src 'self' https://cdn.replica.tavus.io")
-      .replace("connect-src 'self'", "connect-src 'self' https://tavusapi.com https://*.daily.co wss://*.daily.co https://challenges.cloudflare.com")
+      .replace("connect-src 'self'", "connect-src 'self' https://tavusapi.com https://*.daily.co wss://*.daily.co https://*.dailywebrtc.com wss://*.dailywebrtc.com https://*.dailywebrtc.net wss://*.dailywebrtc.net https://challenges.cloudflare.com")
       + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
   }
 })

@@ -15,10 +15,14 @@ describe("Tavus homepage permissions", () => {
     expect(csp).toContain("https://cdn.replica.tavus.io");
     expect(csp).toContain("https://challenges.cloudflare.com");
     expect(csp).toContain("wss://*.daily.co");
+    expect(csp).toContain("https://*.dailywebrtc.com");
+    expect(csp).toContain("https://*.dailywebrtc.net");
+    expect(csp).toContain("'unsafe-eval'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(header(home, "Permissions-Policy")).toContain("microphone=(self)");
     expect(header(app, "Permissions-Policy")).toContain("microphone=()");
     expect(header(app, "Content-Security-Policy")).not.toContain("tavus");
+    expect(header(app, "Content-Security-Policy")).not.toContain("'unsafe-eval'");
     const appPattern = new RegExp(`^${app.source}$`);
     expect(appPattern.test("/")).toBe(false);
     expect(appPattern.test("/dashboard")).toBe(true);
