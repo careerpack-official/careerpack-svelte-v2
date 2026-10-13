@@ -10,11 +10,10 @@ type ChatWindow = Window & {
 export function LandingLiveChat() {
   useEffect(() => {
     const chatWindow = window as ChatWindow;
-    if (window.location.pathname !== "/") return;
     // SPA entry from a private page keeps its CSP; SDK destroy also needs a fresh document.
     const documentPath = new URL(performance.getEntriesByType("navigation")[0]?.name || window.location.href).pathname;
     if (documentPath !== "/" || chatWindow.__careerpackChatDestroyed) {
-      window.location.reload();
+      window.location.replace("/");
       return;
     }
     const script = document.createElement("script");
