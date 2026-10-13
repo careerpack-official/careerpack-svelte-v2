@@ -76,7 +76,7 @@ const SECURITY_HEADERS = [
       // translate.google.com serves element.js, which then pulls its runtime
       // from translate.googleapis.com and www.gstatic.com. Only ever fetched
       // for a visitor who chose a translation (see shared/lib/googleTranslate.ts).
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://static.cloudflareinsights.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://static.cloudflareinsights.com https://cdn.livechatinc.com https://secure.livechatinc.com https://cdn.livechat-static.com",
       // Google Fonts allowed globally so personal-branding template iframes
       // (rendered via srcDoc) inherit a CSP that lets them load Inter /
       // Cormorant / Manrope. about:srcdoc inherits the parent's CSP and
@@ -88,7 +88,7 @@ const SECURITY_HEADERS = [
       // personal-branding template thumbnails + the Convex deploy origin
       // for stored avatars/portfolio media.
       // gstatic/translate hosts serve the widget's flag + spinner sprites.
-      `img-src 'self' data: blob: https://images.unsplash.com https://www.gstatic.com https://translate.googleapis.com https://translate.google.com ${CONVEX.http} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP}`,
+      `img-src 'self' data: blob: https://images.unsplash.com https://www.gstatic.com https://translate.googleapis.com https://translate.google.com ${CONVEX.http} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP} https://cdn.livechatinc.com https://cdn.livechat-static.com https://cdn.livechat-files.com https://cdn.files-text.com`,
       "font-src 'self' data: https://fonts.gstatic.com",
       // Enumerate connect-src to the Convex deploy origin + WS upgrade, plus
       // the explicit Convex site origin used by HTTP Actions on custom domains.
@@ -99,7 +99,8 @@ const SECURITY_HEADERS = [
       // both were missing here, so every hit was silently CSP-blocked.
       // translate.googleapis.com is where the widget POSTs page text for
       // translation — without it the script loads and silently does nothing.
-      `connect-src 'self' ${CONVEX.http} ${CONVEX.ws} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP} ${CONVEX_WILDCARDS_WS} https://www.google-analytics.com https://www.google.com https://translate.googleapis.com https://cloudflareinsights.com`,
+      `connect-src 'self' ${CONVEX.http} ${CONVEX.ws} ${CONVEX_SITE.http} ${CONVEX_WILDCARDS_HTTP} ${CONVEX_WILDCARDS_WS} https://www.google-analytics.com https://www.google.com https://translate.googleapis.com https://cloudflareinsights.com https://api.livechatinc.com https://cdn.livechatinc.com https://secure.livechatinc.com https://api.text.com wss://api.livechatinc.com`,
+      "frame-src 'self' https://secure.livechatinc.com",
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
@@ -134,7 +135,8 @@ const MARKETING_HEADERS = SECURITY_HEADERS.map((header) => {
       .replace("script-src 'self'", "script-src 'self' blob: 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
       .replace("img-src 'self'", "img-src 'self' https://cdn.replica.tavus.io")
       .replace("connect-src 'self'", "connect-src 'self' https://tavusapi.com https://*.daily.co wss://*.daily.co https://*.dailywebrtc.com wss://*.dailywebrtc.com https://*.dailywebrtc.net wss://*.dailywebrtc.net https://challenges.cloudflare.com")
-      + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://tavusapi.com https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
+      .replace("frame-src 'self'", "frame-src 'self' https://tavusapi.com https://*.daily.co https://challenges.cloudflare.com")
+      + "; media-src 'self' blob: https://cdn.replica.tavus.io; worker-src 'self' blob:",
   }
 })
 
