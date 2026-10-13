@@ -131,7 +131,7 @@ const MARKETING_HEADERS = SECURITY_HEADERS.map((header) => {
     ...header,
     value: header.value
       // Daily evaluates its call bundle and loads audio worklets from blob URLs.
-      .replace("script-src 'self'", "script-src 'self' https://api.livechatinc.com/global-mapper/ https://cdn.livechatinc.com https://secure.livechatinc.com https://cdn.livechat-static.com blob: 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
+      .replace("script-src 'self'", "script-src 'self' https://api.livechatinc.com https://cdn.livechatinc.com https://secure.livechatinc.com https://cdn.livechat-static.com blob: 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com")
       .replace("img-src 'self'", "img-src 'self' https://cdn.replica.tavus.io https://cdn.livechatinc.com https://cdn.livechat-static.com https://cdn.livechat-files.com https://cdn.files-text.com")
       .replace("connect-src 'self'", "connect-src 'self' https://api.livechatinc.com https://cdn.livechatinc.com https://secure.livechatinc.com https://api.text.com wss://api.livechatinc.com https://tavusapi.com https://*.daily.co wss://*.daily.co https://*.dailywebrtc.com wss://*.dailywebrtc.com https://*.dailywebrtc.net wss://*.dailywebrtc.net https://challenges.cloudflare.com")
       + "; media-src 'self' blob: https://cdn.replica.tavus.io; frame-src 'self' https://secure.livechatinc.com https://tavusapi.com https://*.daily.co https://challenges.cloudflare.com; worker-src 'self' blob:",
