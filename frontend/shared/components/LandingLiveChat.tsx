@@ -11,8 +11,9 @@ export function LandingLiveChat() {
   useEffect(() => {
     const chatWindow = window as ChatWindow;
     if (window.location.pathname !== "/") return;
-    // LiveChat cannot restart after destroy without refreshing the document.
-    if (chatWindow.__careerpackChatDestroyed) {
+    // SPA entry from a private page keeps its CSP; SDK destroy also needs a fresh document.
+    const documentPath = new URL(performance.getEntriesByType("navigation")[0]?.name || window.location.href).pathname;
+    if (documentPath !== "/" || chatWindow.__careerpackChatDestroyed) {
       window.location.reload();
       return;
     }
