@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 // import Script from "next/script";
 // import { createElement } from "react";
 
+import { LandingLiveChat } from "@/shared/components/LandingLiveChat";
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import {
   AudienceSection,
@@ -195,6 +196,7 @@ export default async function LandingPage() {
 
   return (
     <>
+      <LandingLiveChat />
       <JsonLd data={ORGANIZATION_LD} />
       <JsonLd data={WEBSITE_LD} />
       <JsonLd data={SOFTWARE_APPLICATION_LD} />
